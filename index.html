@@ -5,25 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bio-Scan AI</title>
     <style>
-        body { font-family: sans-serif; background-color: #121212; color: white; padding: 20px; }
-        .card { background-color: #1e1e1e; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #121212; color: #fff; padding: 15px; margin: 0; }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .card { background-color: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #333; }
+        .title { font-size: 1.2rem; font-weight: bold; color: #fff; margin: 0; }
+        .subtitle { font-size: 0.85rem; color: #aaa; margin-top: 5px; }
+        .pill { font-size: 0.7rem; background: #333; padding: 4px 8px; border-radius: 6px; }
+        .stat-line { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.9rem; }
+        .trend-up { color: #4CAF50; font-weight: bold; }
         .btn-scan { 
-            width: 100%; padding: 15px; border: none; border-radius: 8px; 
-            background-color: #007bff; color: white; font-weight: bold; 
-            cursor: pointer; transition: background-color 0.3s;
+            width: 100%; padding: 16px; border: none; border-radius: 12px; 
+            background-color: #007bff; color: white; font-weight: bold; font-size: 1rem;
+            cursor: pointer; transition: background-color 0.3s ease; margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>BIO-SCAN AI</h2>
-        <p>Мониторинг пептидных трендов (Китай/1688)</p>
+    <div class="header">
+        <h1 class="title">🧬 BIO-SCAN AI</h1>
+        <span class="pill">Онлайн</span>
     </div>
 
     <div class="card">
-        <p>Пептид BPC-157: ~2.40$ / флакон</p>
-        <p>Маржа: ~1480%</p>
+        <div class="title">Пептид BPC-157</div>
+        <div class="subtitle">Регенерация ЖКТ / Суставы</div>
+        <div class="stat-line"><span>Закупка:</span> <b>~$2.40</b></div>
+        <div class="stat-line"><span>Маржа:</span> <b>~1480%</b></div>
+        <div class="stat-line"><span>Тренд:</span> <span class="trend-up">Рост +42%</span></div>
+    </div>
+
+    <div class="card">
+        <div class="title">Пептид Epitalon</div>
+        <div class="subtitle">Антивозраст / Теломеры</div>
+        <div class="stat-line"><span>Закупка:</span> <b>~$3.10</b></div>
+        <div class="stat-line"><span>Маржа:</span> <b>~1350%</b></div>
+        <div class="stat-line"><span>Тренд:</span> <span class="trend-up">Рост +28%</span></div>
     </div>
 
     <button class="btn-scan" onclick="startScan()">Сканировать новые пептиды</button>
@@ -37,20 +54,22 @@
         function startScan() {
             const btn = document.querySelector('.btn-scan');
             
-            // Меняем вид кнопки
+            // Анимация кнопки
             btn.innerText = 'Сканирование...';
             btn.style.backgroundColor = '#555';
+            btn.disabled = true; 
 
             tg.showPopup({
-                title: 'Запуск',
-                message: 'Анализ трендов запущен...',
+                title: 'Запуск системы',
+                message: 'Анализ трендов 1688 запущен...',
                 buttons: [{type: 'ok', text: 'Понял'}]
             });
 
-            // Возврат через 3 секунды
+            // Возврат в исходное состояние
             setTimeout(() => {
                 btn.innerText = 'Сканировать новые пептиды';
                 btn.style.backgroundColor = '#007bff';
+                btn.disabled = false;
             }, 3000);
         }
     </script>
