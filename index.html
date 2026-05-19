@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bio-Scan AI Panel</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        .header h1 {
+            color: #58a6ff;
+            font-size: 22px;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .header p {
+            color: #8b949e;
+            font-size: 13px;
+            margin: 5px 0 0 0;
+        }
+        .stats-bar {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 10px 15px;
+            width: 90%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .stats-bar span {
+            color: #58a6ff;
+            font-weight: bold;
+        }
+        .card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 15px;
+            width: 90%;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .card-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #21262d;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+        .card-title h3 {
+            margin: 0;
+            color: #ff7b72;
+            font-size: 16px;
+        }
+        .badge {
+            background: #238636;
+            color: #fff;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .metrics {
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .metrics div {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .metrics span {
+            color: #f0f6fc;
+            font-weight: 500;
+        }
+        .trend-up {
+            color: #3fb950 !important;
+            font-weight: bold;
+        }
+        .btn-scan {
+            background: linear-gradient(135deg, #1f6feb 0%, #58a6ff 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            width: 95%;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(31, 111, 235, 0.4);
+            transition: 0.2s;
+        }
+        .btn-scan:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🧬 Bio-Scan AI</h1>
+        <p>Мониторинг пептидных трендов (Китай/1688)</p>
+    </div>
+
+    <div class="stats-bar">
+        <div>Доступно сканов: <span id="scans-count">3 / 3</span></div>
+        <div>База данных: <span style="color: #3fb950;">Онлайн</span></div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">
+            <h3>Пептид BPC-157 (Регенерация ЖКТ/Суставов)</h3>
+            <span class="badge">ТОП 1 СТРАТЕГИЯ</span>
+        </div>
+        <div class="metrics">
+            <div>Закупка в Китае (OEM субстанция): <span>~$2.40 / флакон</span></div>
+            <div>Рыночная цена в РФ/СНГ: <span>~$38.00</span></div>
+            <div>Потенциал маржи: <span class="trend-up">~1480%</span></div>
+            <div>Тренд спроса (Douyin / Reels): <span class="trend-up">📈 Рост +42% в неделю</span></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">
+            <h3>Пептид Epitalon (Антивозраст / Теломеры)</h3>
+            <span class="badge" style="background: #8957e5;">ПРЕМИУМ НИША</span>
+        </div>
+        <div class="metrics">
+            <div>Закупка в Китае (OEM субстанция): <span><span>~$3.10 / флакон</span></div>
+            <div>Рыночная цена в РФ/СНГ: <span>~$45.00</span></div>
+            <div>Потенциал маржи: <span class="trend-up">~1350%</span></div>
+            <div>Тренд спроса (Douyin / Reels): <span class="trend-up">📈 Рост +28% в неделю</span></div>
+        </div>
+    </div>
+
+    <button class="btn-scan" onclick="startScan()">🧬 Сканировать новые пептидные фабрики</button>
+
+    <script>
+        // Инициализируем Telegram WebApp контекст
+        const tg = window.Telegram.WebApp;
+        tg.ready(); // Сообщаем Telegram, что приложение загрузилось
+        tg.expand(); // Расширяем окно на максимум экрана телефона
+
+        function startScan() {
+            tg.showPopup({
+                title: 'Алгоритм запущен',
+                message: 'ИИ производит сканирование фабрик Шэньчжэня и Уханя через API 1688...',
+                buttons: [{type: 'ok'}]
+            });
+        }
+    </script>
+</body>
+</html>
