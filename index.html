@@ -161,11 +161,21 @@
         tg.expand(); // Расширяем окно на максимум экрана телефона
 
         function startScan() {
-            tg.showPopup({
-                title: 'Алгоритм запущен',
-                message: 'ИИ производит сканирование фабрик Шэньчжэня и Уханя через API 1688...',
-                buttons: [{type: 'ok'}]
-            });
+            const btn = document.querySelector('button'); // Находим нашу кнопку
+    btn.innerText = 'Сканирование...'; // Меняем текст на «процесс»
+    btn.style.backgroundColor = '#555'; // Меняем цвет на серый (типа «в работе»)
+
+    tg.showPopup({
+        title: 'Запуск системы',
+        message: 'Анализ трендов 1688 запущен...',
+        buttons: [{type: 'ok', text: 'Понял'}]
+    });
+
+    // Возвращаем кнопку в исходное состояние через 3 секунды
+    setTimeout(() => {
+        btn.innerText = 'Сканировать новые пептиды';
+        btn.style.backgroundColor = '#0088cc'; // Возвращаем фирменный синий
+    }, 3000);
         }
     </script>
 </body>
