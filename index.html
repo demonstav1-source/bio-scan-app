@@ -5,31 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bio-Scan AI</title>
     <style>
-        /* Базовые настройки для точного соответствия оригиналу */
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background-color: #0e121a; color: #fff; padding: 16px; margin: 0;
-            padding-bottom: 100px; /* Чтобы контент не перекрывался кнопкой */
+        /* Блокируем любые случайные скроллы и гуляния экрана */
+        html, body {
+            background-color: #111418;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* Контейнер приложения скроллится только вертикально и без рывков */
+        .app-container {
+            padding: 16px;
+            box-sizing: border-box;
+            width: 100%;
         }
         
-        /* Верхний блок заголовка */
+        /* Шапка точь-в-точь */
         .brand-header { text-align: center; margin-bottom: 20px; }
-        .brand-logo { font-size: 1.4rem; font-weight: 800; letter-spacing: 0.5px; color: #2481cc; margin: 0; display: inline-flex; align-items: center; gap: 8px; }
+        .brand-logo { font-size: 1.4rem; font-weight: 800; color: #2481cc; margin: 0; }
         .brand-logo span { color: #fff; }
         .brand-desc { font-size: 0.8rem; color: #7f8c8d; margin-top: 4px; margin-bottom: 0; }
         
         /* Карточка лимитов */
         .limit-card { 
-            background-color: #151a24; padding: 12px 16px; border-radius: 12px; 
+            background-color: #181c22; padding: 14px 16px; border-radius: 12px; 
             margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;
-            font-size: 0.9rem; border: 1px solid #1f2633;
+            font-size: 0.9rem; border: 1px solid #232932;
         }
         .status-online { color: #2ed573; font-weight: bold; }
 
-        /* Основные карточки пептидов */
+        /* Идеальные карточки из скриншота 115 */
         .card { 
-            background-color: #151a24; padding: 18px; border-radius: 16px; 
-            margin-bottom: 16px; border: 1px solid #1f2633;
+            background-color: #181c22; padding: 18px; border-radius: 16px; 
+            margin-bottom: 16px; border: 1px solid #232932; box-sizing: border-box;
         }
         
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
@@ -37,68 +50,50 @@
         .card-title.blue-title { color: #70a1ff; }
         
         /* Оригинальные плашки */
-        .badge { font-size: 0.65rem; font-weight: 800; padding: 4px 8px; border-radius: 8px; text-transform: uppercase; text-align: center; line-height: 1.2; }
+        .badge { font-size: 0.65rem; font-weight: 800; padding: 5px 10px; border-radius: 8px; text-transform: uppercase; text-align: center; line-height: 1.2; }
         .badge-green { background-color: #2ed573; color: #000; }
         .badge-purple { background-color: #9b59b6; color: #fff; }
 
         /* Строки данных */
-        .info-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; color: #a4b0be; }
+        .info-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; color: #bdc3c7; }
         .info-value { font-weight: 600; color: #ffffff; }
         .trend-value { color: #2ed573; font-weight: bold; }
-
-        /* Контейнер кнопки, защищающий от съезжания на телефонах */
-        .bottom-container {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: linear-gradient(to top, #0e121a 80%, rgba(14,18,26,0));
-            padding: 20px 16px; display: flex; justify-content: center;
-            box-sizing: border-box; z-index: 9999;
-        }
-        
-        /* Идеальная кнопка */
-        .btn-scan { 
-            width: 100%; max-width: 450px; padding: 16px; border: none; border-radius: 14px; 
-            background-color: #2481cc; color: white; font-weight: 700; font-size: 1.05rem;
-            cursor: pointer; transition: all 0.2s ease; text-align: center;
-            box-sizing: border-box; /* Защищает текст от вылезания за границы экрана */
-        }
     </style>
 </head>
 <body>
 
-    <div class="brand-header">
-        <h1 class="brand-logo">🧬 <span>BIO-SCAN AI</span></h1>
-        <p class="brand-desc">Мониторинг пептидных трендов (Китай/1688)</p>
-    </div>
-
-    <div class="limit-card">
-        <div>Доступно сканов: <span style="font-weight: bold; color: #70a1ff;">3 / 3</span></div>
-        <div>База данных: <span class="status-online">Онлайн</span></div>
-    </div>
-
-    <div class="card">
-        <div class="card-header">
-            <div class="card-title">Пептид BPC-157 (Регенерация ЖКТ/ Суставов)</div>
-            <span class="badge badge-green">ТОП 1<br>СТРАТЕГИЯ</span>
+    <div class="app-container">
+        <div class="brand-header">
+            <h1 class="brand-logo">🧬 <span>BIO-SCAN AI</span></h1>
+            <p class="brand-desc">Мониторинг пептидных трендов (Китай/1688)</p>
         </div>
-        <div class="info-item"><span>Закупка в Китае (OEM субстанция):</span> <span class="info-value">~$2.40 / флакон</span></div>
-        <div class="info-item"><span>Рыночная цена в РФ/СНГ:</span> <span class="info-value">~$38.00</span></div>
-        <div class="info-item"><span>Потенциал маржи:</span> <span class="info-value" style="color: #2ed573;">~1480%</span></div>
-        <div class="info-item"><span>Тренд спроса (Douyin / Reels):</span> <span class="trend-value">📈 Рост +42% в неделю</span></div>
-    </div>
 
-    <div class="card">
-        <div class="card-header">
-            <div class="card-title blue-title">Пептид Epitalon (Антивозраст / Теломеры)</div>
-            <span class="badge badge-purple">ПРЕМИУМ<br>НИША</span>
+        <div class="limit-card">
+            <div>Доступно сканов: <span style="font-weight: bold; color: #70a1ff;">3 / 3</span></div>
+            <div>База данных: <span class="status-online">Онлайн</span></div>
         </div>
-        <div class="info-item"><span>Закупка в Китае (OEM субстанция):</span> <span class="info-value">~$3.10 / флакон</span></div>
-        <div class="info-item"><span>Рыночная цена в РФ/СНГ:</span> <span class="info-value">~$45.00</span></div>
-        <div class="info-item"><span>Потенциал маржи:</span> <span class="info-value" style="color: #2ed573;">~1350%</span></div>
-        <div class="info-item"><span>Тренд спроса (Douyin / Reels):</span> <span class="trend-value">📈 Рост +28% в неделю</span></div>
-    </div>
 
-    <div class="bottom-container">
-        <button class="btn-scan" onclick="startScan()">Запустить Scan AI</button>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">Пептид BPC-157 (Регенерация ЖКТ/ Суставов)</div>
+                <span class="badge badge-green">ТОП 1<br>СТРАТЕГИЯ</span>
+            </div>
+            <div class="info-item"><span>Закупка в Китае (OEM субстанция):</span> <span class="info-value">~$2.40 / флакон</span></div>
+            <div class="info-item"><span>Рыночная цена в РФ/СНГ:</span> <span class="info-value">~$38.00</span></div>
+            <div class="info-item"><span>Потенциал маржи:</span> <span class="info-value" style="color: #2ed573;">~1480%</span></div>
+            <div class="info-item"><span>Тренд спроса (Douyin / Reels):</span> <span class="trend-value">📈 Рост +42% в неделю</span></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title blue-title">Пептид Epitalon (Антивозраст / Теломеры)</div>
+                <span class="badge badge-purple">ПРЕМИУМ<br>НИША</span>
+            </div>
+            <div class="info-item"><span>Закупка в Китае (OEM субстанция):</span> <span class="info-value">~$3.10 / флакон</span></div>
+            <div class="info-item"><span>Рыночная цена в РФ/СНГ:</span> <span class="info-value">~$45.00</span></div>
+            <div class="info-item"><span>Потенциал маржи:</span> <span class="info-value" style="color: #2ed573;">~1350%</span></div>
+            <div class="info-item"><span>Тренд спроса (Douyin / Reels):</span> <span class="trend-value">📈 Рост +28% в неделю</span></div>
+        </div>
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -107,25 +102,34 @@
         tg.ready();
         tg.expand();
 
-        function startScan() {
-            const btn = document.querySelector('.btn-scan');
-            
-            btn.innerText = 'Сканирование...';
-            btn.style.backgroundColor = '#343a40';
-            btn.disabled = true;
+        // Настраиваем родную кнопку Telegram (MainButton)
+        // Она встанет в самый низ экрана операционной системы телефона и никогда не съедет!
+        tg.MainButton.text = "Запустить Scan AI";
+        tg.MainButton.textColor = "#ffffff";
+        tg.MainButton.color = "#2481cc";
+        tg.MainButton.show();
 
+        // Вешаем событие нажатия на родную кнопку
+        tg.MainButton.onClick(function() {
+            // Переводим в режим загрузки
+            tg.MainButton.text = "Сканирование...";
+            tg.MainButton.color = "#343a40";
+            tg.MainButton.disable();
+
+            // Показываем официальное всплывающее окно
             tg.showPopup({
                 title: 'Запуск системы',
                 message: 'Анализ трендов 1688 запущен...',
                 buttons: [{type: 'ok', text: 'Понял'}]
             });
 
+            // Через 3 секунды возвращаем кнопку в исходное состояние
             setTimeout(() => {
-                btn.innerText = 'Запустить Scan AI';
-                btn.style.backgroundColor = '#2481cc';
-                btn.disabled = false;
+                tg.MainButton.text = "Запустить Scan AI";
+                tg.MainButton.color = "#2481cc";
+                tg.MainButton.enable();
             }, 3000);
-        }
+        });
     </script>
 </body>
 </html>
