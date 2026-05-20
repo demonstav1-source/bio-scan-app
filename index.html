@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Bio-Scan AI</title>
     <style>
-        /* Блокируем любые горизонтальные сдвиги и дергания экрана */
         html, body {
             background-color: #0c1017;
             color: #f0f6fc;
@@ -19,7 +18,6 @@
             overflow-y: auto;
         }
 
-        /* Главный контейнер скроллинга */
         .app-container {
             padding: 14px;
             box-sizing: border-box;
@@ -27,114 +25,49 @@
             max-width: 100%;
         }
         
-        /* Изящная шапка */
         .brand-header { text-align: center; margin: 12px 0 20px 0; }
         .brand-logo { font-size: 1.35rem; font-weight: 800; color: #58a6ff; margin: 0; display: flex; align-items: center; justify-content: center; gap: 6px; letter-spacing: 0.5px; }
         .brand-logo span { color: #ffffff; }
         .brand-desc { font-size: 0.78rem; color: #8b949e; margin: 4px 0 0 0; font-weight: 400; }
         
-        /* Монолитная карточка лимитов */
         .limit-card { 
-            background-color: #161b22; 
-            padding: 12px 14px; 
-            border-radius: 12px; 
-            margin-bottom: 16px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            font-size: 0.85rem; 
-            border: 1px solid #21262d;
-            box-sizing: border-box;
+            background-color: #161b22; padding: 12px 14px; border-radius: 12px; margin-bottom: 16px; 
+            display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; 
+            border: 1px solid #21262d; box-sizing: border-box;
         }
         .limit-value { font-weight: 700; color: #58a6ff; }
         .status-online { color: #34d399; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
 
-        /* Продающие карточки пептидов */
-        .card { 
-            background-color: #161b22; 
-            padding: 16px; 
-            border-radius: 16px; 
-            margin-bottom: 14px; 
-            border: 1px solid #21262d; 
-            box-sizing: border-box;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        
-        /* Блок заголовка карточки адаптивный */
-        .card-header { 
-            display: flex; 
-            flex-direction: column; /* Элементы идут друг под другом на мобилке, чтобы не толкаться */
-            gap: 8px;
-            margin-bottom: 14px; 
-        }
-        
-        @media(min-width: 360px) {
-            .card-header {
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: flex-start;
-            }
-        }
+        /* Контейнер, куда скрипт будет вставлять карточки */
+        #peptides-list { width: 100%; }
 
-        .card-title { 
-            font-size: 1rem; 
-            font-weight: 700; 
-            color: #f87171; 
-            line-height: 1.35; 
-            margin: 0;
+        .card { 
+            background-color: #161b22; padding: 16px; border-radius: 16px; margin-bottom: 14px; 
+            border: 1px solid #21262d; box-sizing: border-box; shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
+        
+        .card-header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+        @media(min-width: 360px) { .card-header { flex-direction: row; justify-content: space-between; align-items: flex-start; } }
+
+        .card-title { font-size: 1rem; font-weight: 700; color: #f87171; line-height: 1.35; margin: 0; }
         .card-title.blue-version { color: #60a5fa; }
         
-        /* Статусные бэйджи */
         .badge { 
-            font-size: 0.62rem; 
-            font-weight: 800; 
-            padding: 4px 8px; 
-            border-radius: 6px; 
-            text-transform: uppercase; 
-            text-align: center; 
-            line-height: 1.2;
-            white-space: nowrap; /* Запрещаем перенос букв внутри плашки */
-            display: inline-block;
-            align-self: flex-start;
+            font-size: 0.62rem; font-weight: 800; padding: 4px 8px; border-radius: 6px; 
+            text-transform: uppercase; text-align: center; line-height: 1.2; white-space: nowrap; 
+            display: inline-block; align-self: flex-start;
         }
         .badge-green { background-color: #0e6245; color: #34d399; border: 1px solid #10b981; }
         .badge-purple { background-color: #3c1e70; color: #a78bfa; border: 1px solid #8b5cf6; }
 
-        /* Адаптивные строчки данных (флексбокс-таблица) */
-        .data-table {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+        .data-table { display: flex; flex-direction: column; gap: 8px; }
+        .data-row { display: flex; justify-content: space-between; align-items: flex-start; font-size: 0.84rem; color: #8b949e; line-height: 1.4; }
+        .data-label { padding-right: 8px; text-align: left; }
+        .data-value { font-weight: 600; color: #f0f6fc; text-align: right; white-space: nowrap; }
+        .trend-up { color: #34d399; font-weight: 700; }
 
-        .data-row { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: flex-start;
-            font-size: 0.84rem; 
-            color: #8b949e;
-            line-height: 1.4;
-        }
-        
-        /* Левая часть описания */
-        .data-label {
-            padding-right: 8px;
-            text-align: left;
-        }
-
-        /* Правая часть с ценой — никогда не залезет на текст */
-        .data-value { 
-            font-weight: 600; 
-            color: #f0f6fc; 
-            text-align: right;
-            white-space: nowrap; /* Цена всегда в одну строчку */
-        }
-        
-        .trend-up { 
-            color: #34d399; 
-            font-weight: 700; 
-        }
+        /* Элемент загрузки */
+        .loading-text { text-align: center; color: #8b949e; font-size: 0.9rem; margin-top: 40px; }
     </style>
 </head>
 <body>
@@ -150,54 +83,8 @@
             <div>База данных: <span class="status-online">● Онлайн</span></div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Пептид BPC-157<br><span style="font-size: 0.85rem; font-weight: 500; opacity: 0.8;">(Регенерация ЖКТ / Суставов)</span></h2>
-                <span class="badge badge-green">ТОП 1 СТРАТЕГИЯ</span>
-            </div>
-            <div class="data-table">
-                <div class="data-row">
-                    <span class="data-label">Закупка в Китае (OEM субстанция):</span> 
-                    <span class="data-value">~$2.40 / фл.</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Рыночная цена в РФ/СНГ:</span> 
-                    <span class="data-value">~$38.00</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Потенциал маржи:</span> 
-                    <span class="data-value" style="color: #34d399;">~1480%</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Тренд спроса (Douyin / Reels):</span> 
-                    <span class="data-value trend-up">📈 Рост +42%</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title blue-version">Пептид Epitalon<br><span style="font-size: 0.85rem; font-weight: 500; opacity: 0.8;">(Антивозраст / Теломеры)</span></h2>
-                <span class="badge badge-purple">ПРЕМИУМ НИША</span>
-            </div>
-            <div class="data-table">
-                <div class="data-row">
-                    <span class="data-label">Закупка в Китае (OEM субстанция):</span> 
-                    <span class="data-value">~$3.10 / фл.</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Рыночная цена в РФ/СНГ:</span> 
-                    <span class="data-value">~$45.00</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Потенциал маржи:</span> 
-                    <span class="data-value" style="color: #34d399;">~1350%</span>
-                </div>
-                <div class="data-row">
-                    <span class="data-label">Тренд спроса (Douyin / Reels):</span> 
-                    <span class="data-value trend-up">📈 Рост +28%</span>
-                </div>
-            </div>
+        <div id="peptides-list">
+            <div class="loading-text">Загрузка аналитики ИИ...</div>
         </div>
     </div>
 
@@ -207,11 +94,62 @@
         tg.ready();
         tg.expand();
 
-        // Настройка главной системной кнопки Telegram
+        // Главная системная кнопка
         tg.MainButton.text = "Запустить Scan AI";
         tg.MainButton.textColor = "#ffffff";
         tg.MainButton.color = "#2481cc";
         tg.MainButton.show();
+
+        // Функция загрузки данных из JSON
+        async function loadPeptideData() {
+            const listContainer = document.getElementById('peptides-list');
+            try {
+                // Добавляем случайный параметр к ссылке, чтобы избежать жесткого кэширования в Telegram
+                const response = await fetch('data.json?nocache=' + new Date().getTime());
+                if (!response.ok) throw new Error('Ошибка сети');
+                
+                const peptides = await response.json();
+                listContainer.innerHTML = ''; // Очищаем текст загрузки
+
+                // Перебираем JSON и строим продающий интерфейс
+                peptides.forEach(item => {
+                    const cardHtml = `
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title ${item.title_class}">${item.title}<br><span style="font-size: 0.85rem; font-weight: 500; opacity: 0.8;">${item.desc}</span></h2>
+                                <span class="badge ${item.badge_class}">${item.badge_text}</span>
+                            </div>
+                            <div class="data-table">
+                                <div class="data-row">
+                                    <span class="data-label">Закупка в Китае (OEM субстанция):</span> 
+                                    <span class="data-value">${item.china_price}</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="data-label">Рыночная цена в РФ/СНГ:</span> 
+                                    <span class="data-value">${item.rf_price}</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="data-label">Потенциал маржи:</span> 
+                                    <span class="data-value" style="color: #34d399;">${item.margin}</span>
+                                </div>
+                                <div class="data-row">
+                                    <span class="data-label">Тренд спроса (Douyin / Reels):</span> 
+                                    <span class="data-value trend-up">${item.trend}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    listContainer.innerHTML += cardHtml;
+                });
+
+            } catch (error) {
+                listContainer.innerHTML = '<div class="loading-text" style="color: #f87171;">Ошибка загрузки базы данных трендов</div>';
+                console.error(error);
+            }
+        }
+
+        // Запускаем парсинг JSON при входе
+        loadPeptideData();
 
         tg.MainButton.onClick(function() {
             tg.MainButton.text = "Сканирование...";
@@ -220,11 +158,13 @@
 
             tg.showPopup({
                 title: 'Bio-Scan AI',
-                message: 'Поиск и анализ новых трендов запущен...',
+                message: 'Поиск и обновление трендов запущен...',
                 buttons: [{type: 'ok', text: 'Отлично'}]
             });
 
             setTimeout(() => {
+                // При клике на кнопку принудительно перечитываем JSON (имитируем работу ИИ)
+                loadPeptideData();
                 tg.MainButton.text = "Запустить Scan AI";
                 tg.MainButton.color = "#2481cc";
                 tg.MainButton.enable();
