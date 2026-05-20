@@ -1,24 +1,13 @@
 [
   {
-    "title": "Пептид BPC-157",
-    "desc": "(Регенерация ЖКТ / Суставов)",
-    "badge_text": "ИИ АНАЛИЗ: ТОР",
-    "badge_class": "badge-green",
-    "title_class": "",
-    "china_price": "~$2.35 / фл.",
-    "rf_price": "~$40.00",
-    "margin": "~1600%",
-    "trend": "📈 Рост +45% (⚡ Высокий спрос)"
-  },
-  {
-    "title": "Пептид Epitalon",
-    "desc": "(Антивозраст / Теломеры)",
-    "badge_text": "СТАБИЛЬНЫЙ ТРЕНД",
+    "title": "Смарт-массажер ИК",
+    "desc": "(Лимфодренаж / Biohacking)",
+    "badge_text": "ТРЕНД НЕДЕЛИ",
     "badge_class": "badge-purple",
     "title_class": "blue-version",
-    "china_price": "~$3.10 / фл.",
-    "rf_price": "~$45.00",
-    "margin": "~1350%",
-    "trend": "📈 Рост +30%"
+    "china_price": "~$9.11 / шт.",
+    "rf_price": "~$57.00",
+    "margin": "~561%",
+    "trend": "🔥 ТОП продаж Taobao (+64%)"
   }
 ]
