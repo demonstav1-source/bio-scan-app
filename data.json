@@ -1,13 +1,12 @@
 [
   {
-    "title": "Смарт-массажер ИК",
-    "desc": "(Лимфодренаж / Biohacking)",
-    "badge_text": "ТРЕНД НЕДЕЛИ",
+    "title": "Электропианино Pro-X",
+    "desc": "(Сбой сети API, выданы базовые метрики тренда)",
+    "badge_text": "ОБНОВИТЕ ЗАПРОС",
     "badge_class": "badge-purple",
-    "title_class": "blue-version",
-    "china_price": "~$8.97 / шт.",
-    "rf_price": "~$55.00",
-    "margin": "~409%",
-    "trend": "🔥 ТОП продаж Taobao (+60%)"
+    "china_price": "~$15.00",
+    "rf_price": "~$45.00",
+    "margin": "~300%",
+    "trend": "📊 Стабильный спрос"
   }
 ]
