@@ -5,42 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bio-Scan AI</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #121212; color: #fff; padding: 15px; margin: 0; }
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-        .card { background-color: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #333; }
-        .title { font-size: 1.2rem; font-weight: bold; color: #fff; margin: 0; }
-        .subtitle { font-size: 0.85rem; color: #aaa; margin-top: 5px; }
-        .pill { font-size: 0.7rem; background: #333; padding: 4px 8px; border-radius: 6px; }
-        .stat-line { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.9rem; }
-        .trend-up { color: #4CAF50; font-weight: bold; }
+        /* Общие стили для темной темы Telegram */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background-color: #0f0f0f; color: #fff; padding: 10px; margin: 0;
+            display: flex; flex-direction: column; align-items: center; 
+        }
+        
+        /* Твой "старый" дизайн карточек */
+        .card { 
+            background-color: #1c1c1c; padding: 15px; border-radius: 16px; 
+            margin-bottom: 12px; width: 100%; max-width: 400px; box-sizing: border-box;
+        }
+        
+        .header-text { font-size: 1.1rem; font-weight: 600; margin-bottom: 10px; text-align: center; }
+        .data-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; }
+        .data-value { font-weight: bold; color: #fff; }
+        
+        /* Кнопка */
         .btn-scan { 
-            width: 100%; padding: 16px; border: none; border-radius: 12px; 
-            background-color: #007bff; color: white; font-weight: bold; font-size: 1rem;
-            cursor: pointer; transition: background-color 0.3s ease; margin-top: 10px;
+            width: 100%; max-width: 400px; padding: 14px; border: none; border-radius: 14px; 
+            background-color: #2481cc; color: white; font-weight: 600; font-size: 1rem;
+            cursor: pointer; transition: 0.3s; margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1 class="title">🧬 BIO-SCAN AI</h1>
-        <span class="pill">Онлайн</span>
+    <div class="card">
+        <div class="header-text">BIO-SCAN AI</div>
+        <div class="data-row"><span>Статус:</span> <span class="data-value">Онлайн</span></div>
+        <div class="data-row"><span>Доступно сканов:</span> <span class="data-value">3 / 3</span></div>
     </div>
 
     <div class="card">
-        <div class="title">Пептид BPC-157</div>
-        <div class="subtitle">Регенерация ЖКТ / Суставы</div>
-        <div class="stat-line"><span>Закупка:</span> <b>~$2.40</b></div>
-        <div class="stat-line"><span>Маржа:</span> <b>~1480%</b></div>
-        <div class="stat-line"><span>Тренд:</span> <span class="trend-up">Рост +42%</span></div>
+        <div class="header-text" style="color: #ff4757;">Пептид BPC-157</div>
+        <div class="data-row"><span>Закупка (Китай):</span> <span class="data-value">~$2.40</span></div>
+        <div class="data-row"><span>Маржа:</span> <span class="data-value">~1480%</span></div>
+        <div class="data-row"><span>Тренд Douyin:</span> <span class="data-value" style="color: #2ed573;">Рост +42%</span></div>
     </div>
 
     <div class="card">
-        <div class="title">Пептид Epitalon</div>
-        <div class="subtitle">Антивозраст / Теломеры</div>
-        <div class="stat-line"><span>Закупка:</span> <b>~$3.10</b></div>
-        <div class="stat-line"><span>Маржа:</span> <b>~1350%</b></div>
-        <div class="stat-line"><span>Тренд:</span> <span class="trend-up">Рост +28%</span></div>
+        <div class="header-text" style="color: #70a1ff;">Пептид Epitalon</div>
+        <div class="data-row"><span>Закупка (Китай):</span> <span class="data-value">~$3.10</span></div>
+        <div class="data-row"><span>Маржа:</span> <span class="data-value">~1350%</span></div>
+        <div class="data-row"><span>Тренд Douyin:</span> <span class="data-value" style="color: #2ed573;">Рост +28%</span></div>
     </div>
 
     <button class="btn-scan" onclick="startScan()">Сканировать новые пептиды</button>
@@ -49,26 +58,22 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
-        tg.expand();
-
+        
         function startScan() {
             const btn = document.querySelector('.btn-scan');
-            
-            // Анимация кнопки
             btn.innerText = 'Сканирование...';
-            btn.style.backgroundColor = '#555';
-            btn.disabled = true; 
+            btn.style.backgroundColor = '#444';
+            btn.disabled = true;
 
             tg.showPopup({
-                title: 'Запуск системы',
+                title: 'Запуск',
                 message: 'Анализ трендов 1688 запущен...',
                 buttons: [{type: 'ok', text: 'Понял'}]
             });
 
-            // Возврат в исходное состояние через 3 секунды
             setTimeout(() => {
                 btn.innerText = 'Сканировать новые пептиды';
-                btn.style.backgroundColor = '#007bff';
+                btn.style.backgroundColor = '#2481cc';
                 btn.disabled = false;
             }, 3000);
         }
