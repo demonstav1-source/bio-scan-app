@@ -2,174 +2,151 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Bio-Scan AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bio-Scan AI v2.0</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        html, body {
-            background-color: #0c1017;
-            color: #f0f6fc;
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            -webkit-font-smoothing: antialiased;
+        :root {
+            --bg-color: #020617;
+            --card-bg: rgba(30, 41, 59, 0.4);
+            --accent: #DEFF9A;
+            --text-main: #F8FAFC;
+            --text-dim: #94A3B8;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Urbanist', sans-serif;
+            margin: 0; padding: 20px;
             overflow-x: hidden;
-            overflow-y: auto;
         }
 
-        .app-container {
-            padding: 14px;
-            box-sizing: border-box;
-            width: 100%;
-            max-width: 100%;
+        header { margin-bottom: 30px; }
+        .logo { font-size: 28px; font-weight: 700; color: var(--accent); letter-spacing: -1px; }
+        .logo span { color: #fff; }
+        .subtitle { font-size: 14px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; }
+
+        /* Bento Grid Layout */
+        #product-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
         }
-        
-        .brand-header { text-align: center; margin: 12px 0 20px 0; }
-        .brand-logo { font-size: 1.35rem; font-weight: 800; color: #58a6ff; margin: 0; display: flex; align-items: center; justify-content: center; gap: 6px; letter-spacing: 0.5px; }
-        .brand-logo span { color: #ffffff; }
-        .brand-desc { font-size: 0.78rem; color: #8b949e; margin: 4px 0 0 0; font-weight: 400; }
-        
-        .limit-card { 
-            background-color: #161b22; padding: 12px 14px; border-radius: 12px; margin-bottom: 16px; 
-            display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; 
-            border: 1px solid #21262d; box-sizing: border-box;
+
+        .product-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
-        .limit-value { font-weight: 700; color: #58a6ff; }
-        .status-online { color: #34d399; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
 
-        /* Контейнер, куда скрипт будет вставлять карточки */
-        #peptides-list { width: 100%; }
+        /* Hero card spans 2 columns */
+        .product-card:nth-child(3n+1) { grid-column: span 2; }
 
-        .card { 
-            background-color: #161b22; padding: 16px; border-radius: 16px; margin-bottom: 14px; 
-            border: 1px solid #21262d; box-sizing: border-box; shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        .badge {
+            align-self: flex-start;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 12px;
         }
-        
-        .card-header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
-        @media(min-width: 360px) { .card-header { flex-direction: row; justify-content: space-between; align-items: flex-start; } }
+        .badge-green { background: rgba(34, 197, 94, 0.2); color: #4ADE80; }
+        .badge-purple { background: rgba(168, 85, 247, 0.2); color: #C084FC; }
 
-        .card-title { font-size: 1rem; font-weight: 700; color: #f87171; line-height: 1.35; margin: 0; }
-        .card-title.blue-version { color: #60a5fa; }
-        
-        .badge { 
-            font-size: 0.62rem; font-weight: 800; padding: 4px 8px; border-radius: 6px; 
-            text-transform: uppercase; text-align: center; line-height: 1.2; white-space: nowrap; 
-            display: inline-block; align-self: flex-start;
+        .card-title { font-size: 20px; font-weight: 700; margin-bottom: 5px; color: #fff; }
+        .card-desc { font-size: 14px; color: var(--text-dim); margin-bottom: 15px; }
+
+        .price-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: auto;
         }
-        .badge-green { background-color: #0e6245; color: #34d399; border: 1px solid #10b981; }
-        .badge-purple { background-color: #3c1e70; color: #a78bfa; border: 1px solid #8b5cf6; }
 
-        .data-table { display: flex; flex-direction: column; gap: 8px; }
-        .data-row { display: flex; justify-content: space-between; align-items: flex-start; font-size: 0.84rem; color: #8b949e; line-height: 1.4; }
-        .data-label { padding-right: 8px; text-align: left; }
-        .data-value { font-weight: 600; color: #f0f6fc; text-align: right; white-space: nowrap; }
-        .trend-up { color: #34d399; font-weight: 700; }
+        .price-item { font-size: 12px; color: var(--text-dim); }
+        .price-value { font-size: 16px; font-weight: 600; color: #fff; display: block; }
 
-        /* Элемент загрузки */
-        .loading-text { text-align: center; color: #8b949e; font-size: 0.9rem; margin-top: 40px; }
+        .margin-block {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .margin-label { font-size: 12px; color: var(--accent); font-weight: 600; }
+        .margin-value { font-size: 18px; font-weight: 700; color: var(--accent); }
+
+        .trend-line { font-size: 12px; color: #4ADE80; margin-top: 8px; }
+
+        /* Loader */
+        .loader { text-align: center; padding: 50px; color: var(--accent); font-weight: 600; }
     </style>
 </head>
 <body>
+    <header>
+        <div class="logo">BIO-SCAN <span>AI</span></div>
+        <div class="subtitle">Autonomous Analytical Matrix</div>
+    </header>
 
-    <div class="app-container">
-        <div class="brand-header">
-            <h1 class="brand-logo">🧬 <span>BIO-SCAN AI</span></h1>
-            <p class="brand-desc">Мониторинг трендов Китай</p>
-        </div>
-
-        <div class="limit-card">
-            <div>Доступно сканов: <span class="limit-value">3 / 3</span></div>
-            <div>База данных: <span class="status-online">● Онлайн</span></div>
-        </div>
-
-        <div id="peptides-list">
-            <div class="loading-text">Загрузка аналитики ИИ...</div>
-        </div>
+    <div id="product-container">
+        <div class="loader"><i class="fa-solid fa-circle-notch fa-spin"></i> Синхронизация данных...</div>
     </div>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         const tg = window.Telegram.WebApp;
-        tg.ready();
         tg.expand();
 
-        // Главная системная кнопка
-        tg.MainButton.text = "Запустить Scan AI";
-        tg.MainButton.textColor = "#ffffff";
-        tg.MainButton.color = "#2481cc";
-        tg.MainButton.show();
-
-        // Функция загрузки данных из JSON
-        async function loadPeptideData() {
-            const listContainer = document.getElementById('peptides-list');
+        async function loadData() {
             try {
-                // Добавляем случайный параметр к ссылке, чтобы избежать жесткого кэширования в Telegram
-                const response = await fetch('data.json?nocache=' + new Date().getTime());
-                if (!response.ok) throw new Error('Ошибка сети');
-                
-                const peptides = await response.json();
-                listContainer.innerHTML = ''; // Очищаем текст загрузки
-
-                // Перебираем JSON и строим продающий интерфейс
-                peptides.forEach(item => {
-                    const cardHtml = `
-                        <div class="card">
-                            <div class="card-header">
-                                <h2 class="card-title ${item.title_class}">${item.title}<br><span style="font-size: 0.85rem; font-weight: 500; opacity: 0.8;">${item.desc}</span></h2>
-                                <span class="badge ${item.badge_class}">${item.badge_text}</span>
-                            </div>
-                            <div class="data-table">
-                                <div class="data-row">
-                                    <span class="data-label">Закупка в Китае (OEM субстанция):</span> 
-                                    <span class="data-value">${item.china_price}</span>
-                                </div>
-                                <div class="data-row">
-                                    <span class="data-label">Рыночная цена в РФ/СНГ:</span> 
-                                    <span class="data-value">${item.rf_price}</span>
-                                </div>
-                                <div class="data-row">
-                                    <span class="data-label">Потенциал маржи:</span> 
-                                    <span class="data-value" style="color: #34d399;">${item.margin}</span>
-                                </div>
-                                <div class="data-row">
-                                    <span class="data-label">Тренд спроса (Douyin / Reels):</span> 
-                                    <span class="data-value trend-up">${item.trend}</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    listContainer.innerHTML += cardHtml;
-                });
-
+                // Добавляем timestamp для обхода кеша GitHub
+                const response = await fetch('data.json?t=' + new Date().getTime());
+                const data = await response.json();
+                renderProducts(data);
             } catch (error) {
-                listContainer.innerHTML = '<div class="loading-text" style="color: #f87171;">Ошибка загрузки базы данных трендов</div>';
-                console.error(error);
+                document.getElementById('product-container').innerHTML = '<div class="loader">Ошибка загрузки данных. Отправьте нишу боту.</div>';
             }
         }
 
-        // Запускаем парсинг JSON при входе
-        loadPeptideData();
+        function renderProducts(products) {
+            const container = document.getElementById('product-container');
+            container.innerHTML = '';
 
-        tg.MainButton.onClick(function() {
-            tg.MainButton.text = "Сканирование...";
-            tg.MainButton.color = "#21262d";
-            tg.MainButton.disable();
-
-            tg.showPopup({
-                title: 'Bio-Scan AI',
-                message: 'Поиск и обновление трендов запущен...',
-                buttons: [{type: 'ok', text: 'Отлично'}]
+            products.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="badge ${p.badge_class || 'badge-purple'}">${p.badge_text}</div>
+                    <div class="card-title">${p.title}</div>
+                    <div class="card-desc">${p.desc}</div>
+                    <div class="price-grid">
+                        <div class="price-item">Китай (1688)<span class="price-value">${p.china_price}</span></div>
+                        <div class="price-item">Рынок СНГ<span class="price-value">${p.rf_price}</span></div>
+                    </div>
+                    <div class="margin-block">
+                        <div class="margin-label">ОЖИДАЕМЫЙ ПРОФИТ</div>
+                        <div class="margin-value">${p.margin}</div>
+                    </div>
+                    <div class="trend-line"><i class="fa-solid fa-chart-line"></i> ${p.trend}</div>
+                `;
+                container.appendChild(card);
             });
+        }
 
-            setTimeout(() => {
-                // При клике на кнопку принудительно перечитываем JSON (имитируем работу ИИ)
-                loadPeptideData();
-                tg.MainButton.text = "Запустить Scan AI";
-                tg.MainButton.color = "#2481cc";
-                tg.MainButton.enable();
-            }, 3000);
-        });
+        loadData();
     </script>
 </body>
 </html>
+
+Твои ИИ-агенты (Аналитик и Разработчик) готовы к обновлению. Как только закинешь код на GitHub, заходи в бота и посмотри на результат. Что скажешь, переходим к этапу подключения реального API?
