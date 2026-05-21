@@ -62,32 +62,36 @@
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 16px;
-            position: relative;
         }
 
-        .badge-container {
-            position: absolute;
-            top: 16px;
-            right: 16px;
+        /* FLEX-КОНТЕЙНЕР ДЛЯ ИСКЛЮЧЕНИЯ НАЛОЖЕНИЯ ТЕКСТА */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
         }
 
-        .badge-green, .badge-purple {
+        .card-header h2 {
+            font-size: 16px;
+            margin: 0;
+            line-height: 1.3;
+            flex: 1; /* Занимает всё доступное пространство справа */
+        }
+
+        .badge {
             font-size: 10px;
             font-weight: bold;
             padding: 4px 8px;
             border-radius: 6px;
             text-transform: uppercase;
+            white-space: nowrap; /* Запрещает тексту внутри плашки переноситься */
+            flex-shrink: 0;      /* Запрещает плашке сжиматься */
         }
 
         .badge-green { background-color: rgba(35, 134, 54, 0.2); color: #58a6ff; border: 1px solid var(--accent-green); }
         .badge-purple { background-color: rgba(137, 87, 229, 0.2); color: #bc8cff; border: 1px solid var(--accent-purple); }
-
-        .card h2 {
-            font-size: 16px;
-            margin: 0 0 8px 0;
-            max-width: 70%;
-            line-height: 1.3;
-        }
 
         .desc {
             font-size: 13px;
@@ -163,31 +167,24 @@
         tg.ready();
         tg.expand();
 
-        // Безопасное назначение обработчика клика
         const closeBtn = document.getElementById('close-app-btn');
         if (closeBtn) {
             closeBtn.addEventListener('click', () => tg.close());
         }
 
-        // Надежный сбор start_param из всех возможных источников
+        // ПУЛЕНЕПРОБИВАЕМЫЙ СБОР ПАРАМЕТРОВ ИЗ ВСЕХ ИСТОЧНИКОВ ТЕЛЕГРАМА
         function getStartParam() {
             const fromTg = tg.initDataUnsafe?.start_param;
-            if (fromTg) {
-                console.log(`[Bio-Scan]: start_param из Телеграм API → "${fromTg}"`);
-                return fromTg;
-            }
+            if (fromTg) return fromTg;
 
-            const urlParam = new URLSearchParams(window.location.search).get('tgWebAppStartParam');
-            if (urlParam) {
-                console.log(`[Bio-Scan]: start_param из URL параметров → "${urlParam}"`);
-                return urlParam;
-            }
+            const urlParams = new URLSearchParams(window.location.search);
+            // Проверяем и startapp (как шлёт питон), и tgWebAppStartParam (куда его может перемапить TG)
+            const startApp = urlParams.get('startapp') || urlParams.get('tgWebAppStartParam');
+            if (startApp) return startApp;
 
-            console.warn('[Bio-Scan]: start_param не найден. Откат на базовый сценарий.');
             return null;
         }
 
-        // Парсинг параметров сессии
         function parseStartParam(param) {
             if (!param) return { filename: 'data.json', expectedTs: null };
 
@@ -201,17 +198,15 @@
             return { filename: 'data.json', expectedTs: null };
         }
 
-        // Асинхронный цикл пуллинга CDN
         async function loadMarketData() {
             const startParam = getStartParam();
             const { filename, expectedTs } = parseStartParam(startParam);
 
             const RETRY_INTERVAL_MS = 2000;
-            const MAX_RETRIES       = 20;
+            const MAX_RETRIES       = 30; // Увеличили до 1 минуты ожидания деплоя Pages
             let   attempt           = 0;
 
-            console.log(`[Bio-Scan]: Запрос к файлу: ${filename} | Ожидание ts: ${expectedTs ?? 'любой'}`);
-            showLoader("⏳ Подключение к серверу аналитики...");
+            console.log(`[Bio-Scan]: Запрос к файлу: ${filename} | Ожидаемый ts: ${expectedTs}`);
 
             while (attempt < MAX_RETRIES) {
                 attempt++;
@@ -219,15 +214,11 @@
                     const url = `${filename}?nocache=${Date.now()}`;
                     const response = await fetch(url, {
                         cache: "no-store",
-                        headers: {
-                            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
-                            "Pragma": "no-cache"
-                        }
+                        headers: { "Pragma": "no-cache", "Cache-Control": "no-cache" }
                     });
 
                     if (!response.ok) {
-                        console.warn(`[Bio-Scan]: Попытка ${attempt}/${MAX_RETRIES} → Статус HTTP ${response.status}`);
-                        showLoader(`⏳ Деплой архитектуры GitHub Pages... (${attempt}/${MAX_RETRIES})`);
+                        showLoader(`⏳ Генерация витрины данных GitHub Pages... (${attempt}/${MAX_RETRIES})`);
                         await sleep(RETRY_INTERVAL_MS);
                         continue;
                     }
@@ -235,73 +226,42 @@
                     const data = await response.json();
 
                     if (!expectedTs) {
-                        console.log(`[Bio-Scan]: Прямой запуск. Рендерим текущее состояние файла.`);
                         renderCards(data.products || data);
                         return;
                     }
 
                     const fileTs = data.timestamp ?? 0;
+                    // Если таймстамп в файле равен или новее сгенерированного ботом — рендерим!
                     if (fileTs >= expectedTs) {
-                        console.log(`[Bio-Scan]: ✅ Данные верифицированы и актуальны! ts=${fileTs}`);
                         renderCards(data.products || data);
                         return;
                     }
 
-                    console.warn(`[Bio-Scan]: Попытка ${attempt}/${MAX_RETRIES} → На сервере старый кэш (ts=${fileTs} < ожидаем=${expectedTs})`);
-                    showLoader(`⏳ Синхронизация матричных данных... (${attempt}/${MAX_RETRIES})`);
+                    showLoader(`⏳ Обновление матричных данных ИИ... (${attempt}/${MAX_RETRIES})`);
                     await sleep(RETRY_INTERVAL_MS);
 
                 } catch (err) {
-                    console.error(`[Bio-Scan]: Исключение fetch на итерации ${attempt}:`, err);
-                    showLoader(`⏳ Переподключение... (${attempt}/${MAX_RETRIES})`);
+                    showLoader(`⏳ Подключение к серверу данных... (${attempt}/${MAX_RETRIES})`);
                     await sleep(RETRY_INTERVAL_MS);
                 }
             }
 
-            console.error("[Bio-Scan]: Время ожидания ответа сервера истекло.");
-            showError("⚠️ Превышено время ожидания деплоя. Пожалуйста, переоткройте приложение через 5 секунд.");
+            showError("⚠️ Превышено время ожидания деплоя. Пожалуйста, закройте приложение и нажмите кнопку открытия снова.");
         }
 
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        function showLoader(text) {
-            const container = document.getElementById('cards-container');
-            if (container) container.innerHTML = `<div class="loader">${text}</div>`;
-        }
-
-        function showError(text) {
-            const container = document.getElementById('cards-container');
-            if (container) container.innerHTML = `<div class="loader" style="color:#ff4d4f;">${text}</div>`;
-        }
-
-        function formatPrice(value) {
-            const clean = String(value).replace(/[^0-9.]/g, '');
-            return clean ? `~$${clean}` : String(value);
-        }
-
-        function formatMargin(value) {
-            const clean = String(value).replace(/[^0-9.]/g, '');
-            return clean ? `~${clean}%` : String(value);
-        }
-
-        function formatTrend(value) {
-            let text = String(value).trim();
-            text = text.replace(/[📈📊]/g, '').trim();
-            return `📈 ${text}`;
-        }
+        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+        function showLoader(text) { const c = document.getElementById('cards-container'); if (c) c.innerHTML = `<div class="loader">${text}</div>`; }
+        function showError(text) { const c = document.getElementById('cards-container'); if (c) c.innerHTML = `<div class="loader" style="color:#ff4d4f;">${text}</div>`; }
 
         function renderCards(products) {
             const container = document.getElementById('cards-container');
             if (!container) return;
 
             container.innerHTML = '';
-
             const items = Array.isArray(products) ? products : (products?.products || null);
 
             if (!items || !Array.isArray(items) || items.length === 0) {
-                showError("⚠️ Данные анализа не структурированы. Повторите запрос в боте.");
+                showError("⚠️ Ошибка структуры данных. Отправьте новый запрос боту.");
                 return;
             }
 
@@ -310,37 +270,37 @@
                 card.className = 'card';
                 const badgeClass = item.badge_class || 'badge-green';
 
+                // Новая безопасная Flexbox-структура шапки карточки
                 card.innerHTML = `
-                    <div class="badge-container">
-                        <span class="${badgeClass}">${item.badge_text || 'ТРЕНД'}</span>
+                    <div class="card-header">
+                        <h2>${item.title || 'Без названия'}</h2>
+                        <span class="badge ${badgeClass}">${item.badge_text || 'ТРЕНД'}</span>
                     </div>
-                    <h2>${item.title || 'Без названия'}</h2>
-                    <div class="desc">${item.desc || 'Обоснование спроса подготавливается ИИ...'}</div>
+                    <div class="desc">${item.desc || 'Анализ подготавливается...'}</div>
                     <div class="price-grid">
                         <div class="price-item">
                             <div class="price-label">Китай (1688)</div>
-                            <div class="price-value">${formatPrice(item.china_price || 0)}</div>
+                            <div class="price-value">${item.china_price || '$0'}</div>
                         </div>
                         <div class="price-item">
                             <div class="price-label">Рынок СНГ</div>
-                            <div class="price-value">${formatPrice(item.rf_price || 0)}</div>
+                            <div class="price-value">${item.rf_price || '$0'}</div>
                         </div>
                     </div>
                     <div class="profit-row">
                         <div class="profit-label">Ожидаемый профит</div>
-                        <div class="profit-value">${formatMargin(item.margin || '0%')}</div>
+                        <div class="profit-value">${item.margin || '0%'}</div>
                     </div>
                     <div class="trend-row">
-                        <span>${formatTrend(item.trend || 'Стабильный')}</span>
+                        <span>${item.trend || '📈 Стабильный'}</span>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        // Отложенный старт, страхующий от Race Condition внутри Telegram WebApp
         document.addEventListener("DOMContentLoaded", () => {
-            setTimeout(loadMarketData, 150);
+            setTimeout(loadMarketData, 100);
         });
     </script>
 </body>
