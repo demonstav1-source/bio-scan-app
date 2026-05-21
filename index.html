@@ -343,53 +343,66 @@
             }
         }
 
-        function renderCards(products) {
-            const container = document.getElementById('cards-container');
-            container.innerHTML = '';
+        // Форматирует сырые значения из JSON в читаемый вид для карточки
+function formatPrice(value) {
+    // Убираем всё кроме цифр и точки, потом добавляем ~$
+    const clean = String(value).replace(/[^0-9.]/g, '');
+    return clean ? `~$${clean}` : value;
+}
 
-            products.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                const badgeClass = item.badge_class || 'badge-green';
+function formatMargin(value) {
+    // Убираем всё кроме цифр и точки, потом добавляем ~%
+    const clean = String(value).replace(/[^0-9.]/g, '');
+    return clean ? `~${clean}%` : value;
+}
 
-                // Форматируем цены под Скриншот №2 ($ и %)
-                const chinaPrice = formatCurrency(item.china_price);
-                const rfPrice = formatCurrency(item.rf_price);
-                const margin = formatPercent(item.margin);
+function formatTrend(value) {
+    const text = String(value).trim();
+    // Если иконка уже есть — не дублируем
+    return text.startsWith('📈') ? text : `📈 ${text}`;
+}
 
-                // Очищаем и упаковываем текст тренда с красивой иконкой роста 📈
-                let trendText = item.trend.trim();
-                trendText = trendText.replace(/[📈📊]/g, ''); 
-                trendText = `📈 ${trendText}`;
+function renderCards(products) {
+    const container = document.getElementById('cards-container');
+    container.innerHTML = ''; // Стираем лоадер или предыдущие карточки
 
-                card.innerHTML = `
-                    <div class="badge-container">
-                        <span class="${badgeClass}">${item.badge_text}</span>
-                    </div>
-                    <h2>${item.title}</h2>
-                    <div class="desc">${item.desc}</div>
-                    <div class="price-grid">
-                        <div class="price-item">
-                            <div class="price-label">Китай (1688)</div>
-                            <div class="price-value">${chinaPrice}</div>
-                        </div>
-                        <div class="price-item">
-                            <div class="price-label">Рынок СНГ</div>
-                            <div class="price-value">${rfPrice}</div>
-                        </div>
-                    </div>
-                    <div class="profit-row">
-                        <div class="profit-label">Ожидаемый профит</div>
-                        <div class="profit-value">${margin}</div>
-                    </div>
-                    <div class="trend-row">
-                        <div class="trend-box">
-                            <span>${trendText}</span>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
+    if (!products || products.length === 0) {
+        container.innerHTML = `<div class="loader">⚠️ Данные не найдены. Повторите запрос в боте.</div>`;
+        return;
+    }
+
+    products.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const badgeClass = item.badge_class || 'badge-green';
+
+        card.innerHTML = `
+            <div class="badge-container">
+                <span class="${badgeClass}">${item.badge_text}</span>
+            </div>
+            <h2>${item.title}</h2>
+            <div class="desc">${item.desc}</div>
+            <div class="price-grid">
+                <div class="price-item">
+                    <div class="price-label">Китай (1688)</div>
+                    <div class="price-value">${formatPrice(item.china_price)}</div>
+                </div>
+                <div class="price-item">
+                    <div class="price-label">Рынок СНГ</div>
+                    <div class="price-value">${formatPrice(item.rf_price)}</div>
+                </div>
+            </div>
+            <div class="profit-row">
+                <div class="profit-label">Ожидаемый профит</div>
+                <div class="profit-value">${formatMargin(item.margin)}</div>
+            </div>
+            <div class="trend-row">
+                <span>${formatTrend(item.trend)}</span>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
         }
 
         document.addEventListener("DOMContentLoaded", () => {
