@@ -10,102 +10,106 @@
     <title>Bio-Scan AI — Матрица Анализа</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* БАЗОВЫЕ НАСТРОЙКИ СТИЛЯ */
+        /* ПРЕМИАЛЬНЫЙ ТЕМНЫЙ ГРАДИЕНТ ИЗ СКРИНШОТА №2 */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #0b0e14;
+            background: linear-gradient(180deg, #090d14 0%, #111622 100%);
             color: #ffffff;
             margin: 0;
             padding: 0;
             -webkit-user-select: none;
             user-select: none;
+            min-height: 100vh;
         }
 
         /* ШАПКА ПРИЛОЖЕНИЯ */
         .header {
-            padding: 24px 16px 12px 16px;
+            padding: 24px 20px 12px 20px;
         }
 
         .header h1 {
             font-size: 26px;
-            font-weight: 800;
+            font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #d1f440; /* Фирменный неоново-зеленый цвет */
-            margin: 0 0 4px 0;
+            letter-spacing: 1.5px;
+            color: #d1f440; /* Неоново-зеленый цвет */
+            margin: 0 0 6px 0;
         }
 
         .header p {
-            font-size: 12px;
-            color: #5c6980;
+            font-size: 11px;
+            color: #4a5568;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 2.5px;
             margin: 0;
+            font-weight: 600;
         }
 
         /* ОСНОВНОЙ КОНТЕЙНЕР КАРТОЧЕК */
         .container {
-            padding: 12px 16px 140px 16px; /* Большой padding-bottom, чтобы кнопка не перекрывала контент */
+            padding: 8px 16px 160px 16px;
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
 
-        /* СТИЛЬ КАРТОЧКИ ТОВАРА */
+        /* КАРТОЧКА ТОВАРА С ПОЛУПРОЗРАЧНЫМ ТЕМНЫМ ФОНОМ */
         .card {
-            background: #111622;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            background: rgba(14, 20, 32, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
         }
 
         .badge-container {
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
 
         .badge-green {
             display: inline-block;
-            background: rgba(209, 244, 64, 0.1);
+            background: rgba(209, 244, 64, 0.08);
             color: #d1f440;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 4px 8px;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 5px 10px;
             border-radius: 8px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .badge-purple {
             display: inline-block;
-            background: rgba(162, 89, 255, 0.1);
+            background: rgba(162, 89, 255, 0.08);
             color: #a259ff;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 4px 8px;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 5px 10px;
             border-radius: 8px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .card h2 {
-            font-size: 20px;
+            font-size: 21px;
             font-weight: 700;
-            margin: 0 0 8px 0;
-            line-height: 1.3;
+            margin: 0 0 12px 0;
+            line-height: 1.4;
+            letter-spacing: -0.3px;
         }
 
         .card .desc {
             font-size: 14px;
-            color: #9aa6bc;
-            line-height: 1.5;
-            margin-bottom: 20px;
+            color: #8393a7;
+            line-height: 1.6;
+            margin-bottom: 24px;
         }
 
-        /* ДАННЫЕ ЦЕН И ЭКОНОМИКИ */
+        /* ДАННЫЕ ЦЕН */
         .price-grid {
             display: flex;
             justify-content: space-between;
             margin-bottom: 20px;
-            gap: 12px;
         }
 
         .price-item {
@@ -113,52 +117,61 @@
         }
 
         .price-label {
-            font-size: 11px;
-            color: #5c6980;
-            margin-bottom: 4px;
+            font-size: 10px;
+            color: #435066;
+            margin-bottom: 6px;
             text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
         }
 
         .price-value {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
+            color: #ffffff;
         }
 
+        /* ПРОФИТ С РАЗДЕЛИТЕЛЬНОЙ ЛИНИЕЙ НАВЕРХУ */
         .profit-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            margin-bottom: 12px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 14px;
         }
 
         .profit-label {
-            font-size: 13px;
-            color: #5c6980;
+            font-size: 12px;
+            color: #435066;
             text-transform: uppercase;
             font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
         .profit-value {
             font-size: 20px;
             font-weight: 800;
-            color: #d1f440;
+            color: #d1f440; /* Неоновый акцент на % */
         }
 
-        .trend-row {
-            display: flex;
+        /* СТИЛЬНАЯ ЗЕЛЕНАЯ ПЛАШКА СТАБИЛЬНОГО РОСТА */
+        .trend-box {
+            display: inline-flex;
             align-items: center;
             gap: 6px;
-            font-size: 13px;
+            background: rgba(82, 196, 26, 0.08);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 12px;
             color: #52c41a;
-            font-weight: 500;
+            font-weight: 600;
         }
 
-        /* ПЛАВАЮЩАЯ КНОПКА СНИЗУ */
+        /* ФИКСИРОВАННАЯ КНОПКА СНИЗУ */
         .fixed-bottom-action {
             position: fixed;
-            bottom: 75px; /* Высота над таб-баром */
+            bottom: 80px;
             left: 0;
             width: 100%;
             padding: 0 16px;
@@ -171,12 +184,12 @@
             background: #ffffff;
             color: #0b0e14;
             border: none;
-            padding: 15px 0;
-            border-radius: 20px;
-            font-size: 16px;
+            padding: 16px 0;
+            border-radius: 24px;
+            font-size: 15px;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
             transition: transform 0.1s ease;
             display: flex;
             justify-content: center;
@@ -194,27 +207,30 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 60px;
-            background: #111622;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            height: 64px;
+            background: #0e131f;
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
             display: flex;
             justify-content: space-around;
             align-items: center;
             z-index: 99;
-            padding-bottom: env(safe-area-inset-bottom); /* Поддержка челок iPhone */
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            color: #5c6980;
-            font-size: 11px;
-            font-weight: 500;
+            color: #404c61;
+            font-size: 10px;
+            font-weight: 600;
             cursor: pointer;
             background: none;
             border: none;
             padding: 0;
+            gap: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .nav-item.active {
@@ -222,17 +238,18 @@
         }
 
         .nav-item svg {
-            margin-bottom: 4px;
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
         }
 
         /* ИНДИКАТОР ЗАГРУЗКИ */
         .loader {
             text-align: center;
-            padding: 40px;
-            color: #5c6980;
+            padding: 60px 20px;
+            color: #435066;
             font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
     </style>
 </head>
@@ -267,27 +284,45 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
-        tg.expand(); // Открываем Mini App во весь экран
+        tg.expand();
 
-        // Закрытие приложения для возврата в бота
         document.getElementById('close-app-btn').addEventListener('click', () => {
             tg.close();
         });
 
-        // Функция Клода: Загружает данные из data.json БЕЗ кэширования
+        // Форматирование цен и процентов
+        function formatCurrency(val) {
+            let s = String(val).trim();
+            s = s.replace(/[~$%\s]/g, ''); 
+            return `~$${s}`;
+        }
+
+        function formatPercent(val) {
+            let s = String(val).trim();
+            s = s.replace(/[~$%\s]/g, ''); 
+            return `~${s}%`;
+        }
+
         async function loadMarketData() {
-            const url = `data.json?v=${Date.now()}`; // Уровень 1: уникальный хвост-таймстамп
+            // Читаем имя файла, переданное ботом через tgWebAppStartParam
+            const startParam = tg.initDataUnsafe?.start_param;
+
+            // Если параметр есть — берём уникальный файл, иначе резервный data.json
+            const jsonFile = startParam ? `${startParam}.json` : 'data.json';
+
+            // Cache-buster как дополнительная страховка
+            const url = `${jsonFile}?v=${Date.now()}`;
+
+            console.log(`[Bio-Scan]: Загружаем файл → ${url}`);
 
             try {
                 const response = await fetch(url, {
                     method: "GET",
-                    // Уровень 2: Жесткие заголовки против кэширования на серверах GitHub
                     headers: {
                         "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
                         "Pragma": "no-cache",
                         "Expires": "0"
                     },
-                    // Уровень 3: Запрет Fetch API брать данные из памяти браузера
                     cache: "no-store"
                 });
 
@@ -296,28 +331,36 @@
                 }
 
                 const products = await response.json();
-                console.log(`[Bio-Scan]: Данные успешно обновлены:`, products);
-                
-                // Передаем массив на генерацию HTML-карточек
+                console.log(`[Bio-Scan]: Данные успешно обновлены без кэша:`, products);
                 renderCards(products);
 
             } catch (error) {
-                console.error("[Bio-Scan]: Ошибка загрузки data.json →", error);
-                const container = document.getElementById('cards-container');
-                container.innerHTML = `<div class="loader" style="color: #ff4d4f;">⚠️ Ошибка синхронизации данных. Повторите запрос в боте.</div>`;
+                console.error("[Bio-Scan]: Ошибка загрузки →", error);
+                document.getElementById('cards-container').innerHTML =
+                    `<div class="loader" style="color:#ff4d4f;">
+                        ⚠️ Ошибка синхронизации данных. Повторите запрос в боте.
+                     </div>`;
             }
         }
 
-        // Функция отрисовки интерфейса на основе свежего JSON
         function renderCards(products) {
             const container = document.getElementById('cards-container');
-            container.innerHTML = ''; // Стираем лоадер
+            container.innerHTML = '';
 
             products.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                
                 const badgeClass = item.badge_class || 'badge-green';
+
+                // Форматируем цены под Скриншот №2 ($ и %)
+                const chinaPrice = formatCurrency(item.china_price);
+                const rfPrice = formatCurrency(item.rf_price);
+                const margin = formatPercent(item.margin);
+
+                // Очищаем и упаковываем текст тренда с красивой иконкой роста 📈
+                let trendText = item.trend.trim();
+                trendText = trendText.replace(/[📈📊]/g, ''); 
+                trendText = `📈 ${trendText}`;
 
                 card.innerHTML = `
                     <div class="badge-container">
@@ -328,28 +371,30 @@
                     <div class="price-grid">
                         <div class="price-item">
                             <div class="price-label">Китай (1688)</div>
-                            <div class="price-value">${item.china_price}</div>
+                            <div class="price-value">${chinaPrice}</div>
                         </div>
                         <div class="price-item">
                             <div class="price-label">Рынок СНГ</div>
-                            <div class="price-value">${item.rf_price}</div>
+                            <div class="price-value">${rfPrice}</div>
                         </div>
                     </div>
                     <div class="profit-row">
                         <div class="profit-label">Ожидаемый профит</div>
-                        <div class="profit-value">${item.margin}</div>
+                        <div class="profit-value">${margin}</div>
                     </div>
                     <div class="trend-row">
-                        <span>${item.trend}</span>
+                        <div class="trend-box">
+                            <span>${trendText}</span>
+                        </div>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        // Запуск логики при полной инициализации DOM дерева
         document.addEventListener("DOMContentLoaded", () => {
             loadMarketData();
         });
     </script>
 </body>
+</html>
