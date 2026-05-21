@@ -33,7 +33,7 @@
             text-transform: uppercase;
             letter-spacing: 1.5px;
             color: #d1f440; /* Неоново-зеленый */
-            margin: 0 0 6px 0;
+            margin: 0 0 4px 0;
         }
 
         .header p {
@@ -53,7 +53,7 @@
             gap: 16px;
         }
 
-        /* КАРТОЧКА ТОВАРА КАК НА ВТОРОМ ЭКРАНЕ */
+        /* КАРТОЧКА ТОВАРА */
         .card {
             background: rgba(14, 20, 32, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.03);
@@ -153,15 +153,18 @@
         .profit-value {
             font-size: 20px;
             font-weight: 800;
-            color: #d1f440; /* Яркий акцент на процент прибыли */
+            color: #d1f440; /* Тот самый неоновый процент */
         }
 
-        /* СТРОКА ТРЕНДА */
-        .trend-row {
-            display: flex;
+        /* СТРОКА СТАБИЛЬНОГО ТРЕНДА И РОСТА */
+        .trend-box {
+            display: inline-flex;
             align-items: center;
             gap: 6px;
-            font-size: 13px;
+            background: rgba(82, 196, 26, 0.08);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 12px;
             color: #52c41a;
             font-weight: 600;
         }
@@ -264,7 +267,7 @@
 
     <div class="fixed-bottom-action">
         <button id="close-app-btn" class="action-btn">
-            🚀 Начать новый анализ
+            🧬 Начать новый анализ
         </button>
     </div>
 
@@ -288,7 +291,6 @@
             tg.close();
         });
 
-        // Функция загрузки данных без кэширования
         async function loadMarketData() {
             const url = `data.json?v=${Date.now()}`;
 
@@ -317,7 +319,20 @@
             }
         }
 
-        // Отрисовка карточек с визуалом под Скриншот №2
+        // Санитайзер вывода символов валюты и процентов
+        function formatCurrency(val) {
+            let s = String(val).trim();
+            // Убираем уже имеющиеся знаки, чтобы не дублировать
+            s = s.replace(/[~$%\s]/g, '');
+            return `~$${s}`;
+        }
+
+        function formatPercent(val) {
+            let s = String(val).trim();
+            s = s.replace(/[~$%\s]/g, '');
+            return `~${s}%`;
+        }
+
         function renderCards(products) {
             const container = document.getElementById('cards-container');
             container.innerHTML = ''; 
@@ -328,10 +343,16 @@
                 
                 const badgeClass = item.badge_class || 'badge-green';
 
-                // Форматируем вывод цен, добавляя тильду (~), если её нет в JSON
-                const chinaPrice = item.china_price.startsWith('~') ? item.china_price : `~${item.china_price}`;
-                const rfPrice = item.rf_price.startsWith('~') ? item.rf_price : `~${item.rf_price}`;
-                const margin = item.margin.startsWith('~') ? item.margin : `~${item.margin}`;
+                // Применяем форматирование для соответствия скриншоту №2
+                const chinaPrice = formatCurrency(item.china_price);
+                const rfPrice = formatCurrency(item.rf_price);
+                const margin = formatPercent(item.margin);
+
+                // Если ИИ вернул просто текст тренда, добавляем к нему иконку графика
+                let trendText = item.trend;
+                if (!trendText.includes('📊') && !trendText.includes('📈')) {
+                    trendText = `📊 ${trendText}`;
+                }
 
                 card.innerHTML = `
                     <div class="badge-container">
@@ -354,7 +375,9 @@
                         <div class="profit-value">${margin}</div>
                     </div>
                     <div class="trend-row">
-                        <span>${item.trend}</span>
+                        <div class="trend-box">
+                            <span>${trendText}</span>
+                        </div>
                     </div>
                 `;
                 container.appendChild(card);
