@@ -31,7 +31,7 @@
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: #d1f440; /* Твой фирменный неоново-зеленый цвет */
+            color: #d1f440; /* Фирменный неоново-зеленый цвет */
             margin: 0 0 4px 0;
         }
 
@@ -155,7 +155,7 @@
             font-weight: 500;
         }
 
-        /* ИСПРАВЛЕННАЯ ПЛАВАЮЩАЯ КНОПКА СНИЗУ */
+        /* ПЛАВАЮЩАЯ КНОПКА СНИЗУ */
         .fixed-bottom-action {
             position: fixed;
             bottom: 75px; /* Высота над таб-баром */
@@ -267,71 +267,89 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
-        tg.expand(); // Инициализация на полный экран
+        tg.expand(); // Открываем Mini App во весь экран
 
-        // Закрытие приложения при клике на белую кнопку
+        // Закрытие приложения для возврата в бота
         document.getElementById('close-app-btn').addEventListener('click', () => {
             tg.close();
         });
 
-        // Функция для динамического рендеринга карточек из data.json
+        // Функция Клода: Загружает данные из data.json БЕЗ кэширования
         async function loadMarketData() {
-            const container = document.getElementById('cards-container');
+            const url = `data.json?v=${Date.now()}`; // Уровень 1: уникальный хвост-таймстамп
+
             try {
-                // Добавляем кэш-бастер + заголовки запрета кэша в сам fetch запрос
-                const response = await fetch(`data.json?t=${Date.now()}`, {
-                    cache: 'no-store',
+                const response = await fetch(url, {
+                    method: "GET",
+                    // Уровень 2: Жесткие заголовки против кэширования на серверах GitHub
                     headers: {
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache'
-                    }
+                        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+                        "Pragma": "no-cache",
+                        "Expires": "0"
+                    },
+                    // Уровень 3: Запрет Fetch API брать данные из памяти браузера
+                    cache: "no-store"
                 });
-                if (!response.ok) throw new Error('Ошибка загрузки data.json');
-                
+
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: статус ${response.status}`);
+                }
+
                 const products = await response.json();
-                container.innerHTML = ''; // Очищаем лоадер
+                console.log(`[Bio-Scan]: Данные успешно обновлены:`, products);
+                
+                // Передаем массив на генерацию HTML-карточек
+                renderCards(products);
 
-                products.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    
-                    // Выбираем цвет бэйджа в зависимости от настроек ИИ
-                    const badgeClass = item.badge_class || 'badge-green';
-
-                    card.innerHTML = `
-                        <div class="badge-container">
-                            <span class="${badgeClass}">${item.badge_text}</span>
-                        </div>
-                        <h2>${item.title}</h2>
-                        <div class="desc">${item.desc}</div>
-                        <div class="price-grid">
-                            <div class="price-item">
-                                <div class="price-label">Китай (1688)</div>
-                                <div class="price-value">${item.china_price}</div>
-                            </div>
-                            <div class="price-item">
-                                <div class="price-label">Рынок СНГ</div>
-                                <div class="price-value">${item.rf_price}</div>
-                            </div>
-                        </div>
-                        <div class="profit-row">
-                            <div class="profit-label">Ожидаемый профит</div>
-                            <div class="profit-value">${item.margin}</div>
-                        </div>
-                        <div class="trend-row">
-                            <span>${item.trend}</span>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
             } catch (error) {
-                console.error(error);
+                console.error("[Bio-Scan]: Ошибка загрузки data.json →", error);
+                const container = document.getElementById('cards-container');
                 container.innerHTML = `<div class="loader" style="color: #ff4d4f;">⚠️ Ошибка синхронизации данных. Повторите запрос в боте.</div>`;
             }
         }
 
-        // Запуск парсинга при открытии страницы
-        loadMarketData();
+        // Функция отрисовки интерфейса на основе свежего JSON
+        function renderCards(products) {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = ''; // Стираем лоадер
+
+            products.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                const badgeClass = item.badge_class || 'badge-green';
+
+                card.innerHTML = `
+                    <div class="badge-container">
+                        <span class="${badgeClass}">${item.badge_text}</span>
+                    </div>
+                    <h2>${item.title}</h2>
+                    <div class="desc">${item.desc}</div>
+                    <div class="price-grid">
+                        <div class="price-item">
+                            <div class="price-label">Китай (1688)</div>
+                            <div class="price-value">${item.china_price}</div>
+                        </div>
+                        <div class="price-item">
+                            <div class="price-label">Рынок СНГ</div>
+                            <div class="price-value">${item.rf_price}</div>
+                        </div>
+                    </div>
+                    <div class="profit-row">
+                        <div class="profit-label">Ожидаемый профит</div>
+                        <div class="profit-value">${item.margin}</div>
+                    </div>
+                    <div class="trend-row">
+                        <span>${item.trend}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Запуск логики при полной инициализации DOM дерева
+        document.addEventListener("DOMContentLoaded", () => {
+            loadMarketData();
+        });
     </script>
 </body>
-</html>
