@@ -5,23 +5,21 @@
 
     document.getElementById('close-app-btn').addEventListener('click', () => tg.close());
 
-    // Читаем start_param из двух источников: Telegram API и URL (резерв)
+    // НАДЕЖНОЕ ЧТЕНИЕ: Извлекаем start_param из Telegram API или прямо из URL (резерв)
     function getStartParam() {
-        // Источник 1: стандартный Telegram WebApp API
         const fromTg = tg.initDataUnsafe?.start_param;
         if (fromTg) {
-            console.log(`[Bio-Scan]: start_param из Telegram API → "${fromTg}"`);
+            console.log(`[Bio-Scan]: start_param получен из Telegram API → "${fromTg}"`);
             return fromTg;
         }
 
-        // Источник 2: query-параметр в URL (Telegram иногда пишет сюда)
         const urlParam = new URLSearchParams(window.location.search).get('tgWebAppStartParam');
         if (urlParam) {
-            console.log(`[Bio-Scan]: start_param из URL → "${urlParam}"`);
+            console.log(`[Bio-Scan]: start_param получен из URL строки → "${urlParam}"`);
             return urlParam;
         }
 
-        console.warn('[Bio-Scan]: start_param не найден ни в Telegram API, ни в URL. Используем data.json');
+        console.warn('[Bio-Scan]: start_param не обнаружен. Будет использован data.json');
         return null;
     }
 
@@ -32,46 +30,43 @@
         const match = param.match(/^(data_\d+)_ts_(\d+)$/);
         if (match) {
             return {
-                filename:   `${match[1]}.json`,
-                expectedTs: parseInt(match[2], 10)
+                filename:   `${match[1]}.json`,   // data_{user_id}.json
+                expectedTs: parseInt(match[2], 10) // timestamp от бота
             };
         }
-
-        console.warn(`[Bio-Scan]: Нераспознанный формат start_param: "${param}". Резерв → data.json`);
+        
+        console.warn(`[Bio-Scan]: Нетипичный формат start_param: "${param}". Резерв → data.json`);
         return { filename: 'data.json', expectedTs: null };
     }
 
-    // Основная функция: ждёт пока GitHub Pages задеплоит свежий файл
+    // Главная функция: запрашивает файл, пока timestamp внутри не обновится
     async function loadMarketData() {
-        // Читаем параметры только после полной инициализации Telegram WebApp
-        const startParam              = getStartParam();
+        const startParam = getStartParam();
         const { filename, expectedTs } = parseStartParam(startParam);
 
-        const RETRY_INTERVAL_MS = 2000;
-        const MAX_RETRIES       = 20;    // максимум ~40 сек ожидания
+        const RETRY_INTERVAL_MS = 2000;   // Пауза между запросами (2 сек)
+        const MAX_RETRIES       = 20;     // Ожидаем максимум 40 секунд
         let   attempt           = 0;
 
-        console.log(`[Bio-Scan]: Файл → "${filename}" | Ожидаем ts=${expectedTs ?? 'не задан'}`);
-        showLoader('⏳ Синхронизация с сервером...');
+        console.log(`[Bio-Scan]: Загрузка файла → ${filename} | Ожидаем ts=${expectedTs ?? 'не задан'}`);
+        showLoader("⏳ Синхронизация с сервером матрицы...");
 
         while (attempt < MAX_RETRIES) {
             attempt++;
-
             try {
-                // Уникальный URL на каждой попытке — GitHub CDN обязан отдать свежую версию
+                // Жесткий cache-buster, заставляющий CDN выдать новый файл
                 const url = `${filename}?nocache=${Date.now()}`;
-
                 const response = await fetch(url, {
-                    cache: 'no-store',
+                    cache: "no-store",
                     headers: {
-                        'Cache-Control': 'no-store, no-cache, must-revalidate',
-                        'Pragma':        'no-cache'
+                        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+                        "Pragma": "no-cache",
+                        "Expires": "0"
                     }
                 });
 
-                // Файл ещё не задеплоен (404) или GitHub лежит (5xx)
                 if (!response.ok) {
-                    console.warn(`[Bio-Scan]: Попытка ${attempt}/${MAX_RETRIES} → HTTP ${response.status}, повтор...`);
+                    console.warn(`[Bio-Scan]: Попытка ${attempt}/${MAX_RETRIES} → Статус HTTP ${response.status}, ждем деплой...`);
                     showLoader(`⏳ Деплой GitHub Pages... (${attempt}/${MAX_RETRIES})`);
                     await sleep(RETRY_INTERVAL_MS);
                     continue;
@@ -79,52 +74,49 @@
 
                 const data = await response.json();
 
-                // start_param не передавался — показываем что есть без проверки ts
+                // Если зашли без start_param — рендерим то, что есть в data.json
                 if (!expectedTs) {
-                    console.log('[Bio-Scan]: ts не задан → показываем текущие данные');
-                    renderCards(data.products ?? data);
+                    console.log(`[Bio-Scan]: ts не задан, выводим текущие доступные данные`);
+                    renderCards(data.products || data);
                     return;
                 }
 
-                // Проверяем: GitHub уже отдаёт новую версию файла?
+                // Сверяем метку времени внутри JSON с ожидаемой от бота
                 const fileTs = data.timestamp ?? 0;
                 if (fileTs >= expectedTs) {
-                    console.log(`[Bio-Scan]: ✅ Данные актуальны! fileTs=${fileTs} >= expectedTs=${expectedTs}`);
+                    console.log(`[Bio-Scan]: ✅ Данные полностью актуальны! fileTs=${fileTs}`);
                     renderCards(data.products);
                     return;
                 }
 
-                // Timestamp устаревший — CDN ещё держит старую копию
-                console.warn(`[Bio-Scan]: Попытка ${attempt}/${MAX_RETRIES} → fileTs=${fileTs} < expectedTs=${expectedTs}, ждём...`);
-                showLoader(`⏳ Обновление данных... (${attempt}/${MAX_RETRIES})`);
+                // Файл на сервере все еще старый (CDN/деплой задерживается)
+                console.warn(`[Bio-Scan]: Попытка ${attempt}/${MAX_RETRIES} → Файл старый (ts=${fileTs} < ожидаем=${expectedTs}). Ждем...`);
+                showLoader(`⏳ Обновление данных матрицы... (${attempt}/${MAX_RETRIES})`);
                 await sleep(RETRY_INTERVAL_MS);
 
             } catch (err) {
                 console.error(`[Bio-Scan]: Ошибка fetch на попытке ${attempt}:`, err);
-                showLoader(`⏳ Повтор подключения... (${attempt}/${MAX_RETRIES})`);
+                showLoader(`⏳ Восстановление связи... (${attempt}/${MAX_RETRIES})`);
                 await sleep(RETRY_INTERVAL_MS);
             }
         }
 
-        // За 40 секунд GitHub так и не обновился
-        console.error('[Bio-Scan]: Превышен лимит ожиданий.');
-        showError('⚠️ Задержка сервера. Закройте и откройте приложение повторно.');
+        // Превышен лимит ожидания деплоя Гитхаба
+        console.error("[Bio-Scan]: Таймаут ожидания обновления GitHub Pages.");
+        showError("⚠️ Задержка сервера деплоя. Пожалуйста, переоткройте приложение через 5-10 секунд.");
     }
 
-    // ─── Вспомогательные утилиты ───────────────────────────────────────────
-
+    // Вспомогательные утилиты
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     function showLoader(text) {
-        document.getElementById('cards-container').innerHTML =
-            `<div class="loader">${text}</div>`;
+        document.getElementById('cards-container').innerHTML = `<div class="loader">${text}</div>`;
     }
 
     function showError(text) {
-        document.getElementById('cards-container').innerHTML =
-            `<div class="loader" style="color:#ff4d4f;">${text}</div>`;
+        document.getElementById('cards-container').innerHTML = `<div class="loader" style="color:#ff4d4f;">${text}</div>`;
     }
 
     function formatPrice(value) {
@@ -138,22 +130,24 @@
     }
 
     function formatTrend(value) {
-        const text = String(value).trim();
-        return text.startsWith('📈') ? text : `📈 ${text}`;
+        let text = String(value).trim();
+        text = text.replace(/[📈📊]/g, '').trim(); // Не дублируем иконки тренда
+        return `📈 ${text}`;
     }
 
     function renderCards(products) {
         const container = document.getElementById('cards-container');
         container.innerHTML = '';
 
-        if (!Array.isArray(products) || products.length === 0) {
-            showError('⚠️ Данные не найдены. Повторите запрос в боте.');
+        // Страховка от падения скрипта, если products пришел не в виде массива
+        if (!products || !Array.isArray(products) || products.length === 0) {
+            showError("⚠️ Данные анализа не найдены. Повторите запрос в боте.");
             return;
         }
 
         products.forEach(item => {
-            const card      = document.createElement('div');
-            card.className  = 'card';
+            const card = document.createElement('div');
+            card.className = 'card';
             const badgeClass = item.badge_class || 'badge-green';
 
             card.innerHTML = `
@@ -177,16 +171,17 @@
                     <div class="profit-value">${formatMargin(item.margin)}</div>
                 </div>
                 <div class="trend-row">
-                    <span>${formatTrend(item.trend)}</span>
+                    <div class="trend-box">
+                        <span>${formatTrend(item.trend)}</span>
+                    </div>
                 </div>
             `;
             container.appendChild(card);
         });
     }
 
-    // Ждём полной инициализации DOM И Telegram WebApp перед стартом
-    document.addEventListener('DOMContentLoaded', () => {
-        // Небольшой defer гарантирует что tg.initDataUnsafe уже заполнен
+    // Даем 100мс на гарантированное заполнение переменных Telegram WebApp
+    document.addEventListener("DOMContentLoaded", () => {
         setTimeout(loadMarketData, 100);
     });
 </script>
