@@ -1,400 +1,192 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bio-Scan AI — Матрица Анализа</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        /* ПРЕМИАЛЬНЫЙ ТЕМНЫЙ ГРАДИЕНТ */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(180deg, #090d14 0%, #111622 100%);
-            color: #ffffff;
-            margin: 0;
-            padding: 0;
-            -webkit-user-select: none;
-            user-select: none;
-            min-height: 100vh;
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    document.getElementById('close-app-btn').addEventListener('click', () => tg.close());
+
+    // Читаем start_param из двух источников: Telegram API и URL (резерв)
+    function getStartParam() {
+        // Источник 1: стандартный Telegram WebApp API
+        const fromTg = tg.initDataUnsafe?.start_param;
+        if (fromTg) {
+            console.log(`[Bio-Scan]: start_param из Telegram API → "${fromTg}"`);
+            return fromTg;
         }
 
-        /* ШАПКА ПРИЛОЖЕНИЯ */
-        .header {
-            padding: 24px 20px 12px 20px;
+        // Источник 2: query-параметр в URL (Telegram иногда пишет сюда)
+        const urlParam = new URLSearchParams(window.location.search).get('tgWebAppStartParam');
+        if (urlParam) {
+            console.log(`[Bio-Scan]: start_param из URL → "${urlParam}"`);
+            return urlParam;
         }
 
-        .header h1 {
-            font-size: 26px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #d1f440; /* Неоново-зеленый цвет */
-            margin: 0 0 6px 0;
+        console.warn('[Bio-Scan]: start_param не найден ни в Telegram API, ни в URL. Используем data.json');
+        return null;
+    }
+
+    // Парсим start_param: формат "data_{user_id}_ts_{timestamp}"
+    function parseStartParam(param) {
+        if (!param) return { filename: 'data.json', expectedTs: null };
+
+        const match = param.match(/^(data_\d+)_ts_(\d+)$/);
+        if (match) {
+            return {
+                filename:   `${match[1]}.json`,
+                expectedTs: parseInt(match[2], 10)
+            };
         }
 
-        .header p {
-            font-size: 11px;
-            color: #4a5568;
-            text-transform: uppercase;
-            letter-spacing: 2.5px;
-            margin: 0;
-            font-weight: 600;
-        }
+        console.warn(`[Bio-Scan]: Нераспознанный формат start_param: "${param}". Резерв → data.json`);
+        return { filename: 'data.json', expectedTs: null };
+    }
 
-        /* ОСНОВНОЙ КОНТЕЙНЕР КАРТОЧЕК */
-        .container {
-            padding: 8px 16px 160px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
+    // Основная функция: ждёт пока GitHub Pages задеплоит свежий файл
+    async function loadMarketData() {
+        // Читаем параметры только после полной инициализации Telegram WebApp
+        const startParam              = getStartParam();
+        const { filename, expectedTs } = parseStartParam(startParam);
 
-        /* КАРТОЧКА ТОВАРА С ПОЛУПРОЗРАЧНЫМ ТЕМНЫМ ФОНОМ */
-        .card {
-            background: rgba(14, 20, 32, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-        }
+        const RETRY_INTERVAL_MS = 2000;
+        const MAX_RETRIES       = 20;    // максимум ~40 сек ожидания
+        let   attempt           = 0;
 
-        .badge-container {
-            margin-bottom: 16px;
-        }
+        console.log(`[Bio-Scan]: Файл → "${filename}" | Ожидаем ts=${expectedTs ?? 'не задан'}`);
+        showLoader('⏳ Синхронизация с сервером...');
 
-        .badge-green {
-            display: inline-block;
-            background: rgba(209, 244, 64, 0.08);
-            color: #d1f440;
-            font-size: 10px;
-            font-weight: 800;
-            padding: 5px 10px;
-            border-radius: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .badge-purple {
-            display: inline-block;
-            background: rgba(162, 89, 255, 0.08);
-            color: #a259ff;
-            font-size: 10px;
-            font-weight: 800;
-            padding: 5px 10px;
-            border-radius: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .card h2 {
-            font-size: 21px;
-            font-weight: 700;
-            margin: 0 0 12px 0;
-            line-height: 1.4;
-            letter-spacing: -0.3px;
-        }
-
-        .card .desc {
-            font-size: 14px;
-            color: #8393a7;
-            line-height: 1.6;
-            margin-bottom: 24px;
-        }
-
-        /* ДАННЫЕ ЦЕН */
-        .price-grid {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .price-item {
-            flex: 1;
-        }
-
-        .price-label {
-            font-size: 10px;
-            color: #435066;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            font-weight: 600;
-        }
-
-        .price-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: #ffffff;
-        }
-
-        /* ПРОФИТ С РАЗДЕЛИТЕЛЬНОЙ ЛИНИЕЙ НАВЕРХУ */
-        .profit-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 18px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            margin-bottom: 14px;
-        }
-
-        .profit-label {
-            font-size: 12px;
-            color: #435066;
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .profit-value {
-            font-size: 20px;
-            font-weight: 800;
-            color: #d1f440; /* Неоновый акцент на % */
-        }
-
-        /* СТИЛЬНАЯ ЗЕЛЕНАЯ ПЛАШКА СТАБИЛЬНОГО РОСТА */
-        .trend-box {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(82, 196, 26, 0.08);
-            padding: 6px 12px;
-            border-radius: 10px;
-            font-size: 12px;
-            color: #52c41a;
-            font-weight: 600;
-        }
-
-        /* ФИКСИРОВАННАЯ КНОПКА СНИЗУ */
-        .fixed-bottom-action {
-            position: fixed;
-            bottom: 80px;
-            left: 0;
-            width: 100%;
-            padding: 0 16px;
-            box-sizing: border-box;
-            z-index: 100;
-        }
-
-        .action-btn {
-            width: 100%;
-            background: #ffffff;
-            color: #0b0e14;
-            border: none;
-            padding: 16px 0;
-            border-radius: 24px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
-            transition: transform 0.1s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .action-btn:active {
-            transform: scale(0.97);
-        }
-
-        /* НИЖНИЙ НАВИГАЦИОННЫЙ БАР (ТАБ-БАР) */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 64px;
-            background: #0e131f;
-            border-top: 1px solid rgba(255, 255, 255, 0.03);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 99;
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: #404c61;
-            font-size: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            background: none;
-            border: none;
-            padding: 0;
-            gap: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .nav-item.active {
-            color: #ffffff;
-        }
-
-        .nav-item svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        /* ИНДИКАТОР ЗАГРУЗКИ */
-        .loader {
-            text-align: center;
-            padding: 60px 20px;
-            color: #435066;
-            font-size: 14px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="header">
-        <h1>Bio-Scan AI</h1>
-        <p>Autonomous Analytical Matrix</p>
-    </div>
-
-    <div class="container" id="cards-container">
-        <div class="loader">Считывание потока данных матрицы...</div>
-    </div>
-
-    <div class="fixed-bottom-action">
-        <button id="close-app-btn" class="action-btn">
-            🧬 Начать новый анализ
-        </button>
-    </div>
-
-    <div class="bottom-nav">
-        <button class="nav-item active">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-            <span>Дом</span>
-        </button>
-        <button class="nav-item">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
-            <span>Профиль</span>
-        </button>
-    </div>
-
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-
-        document.getElementById('close-app-btn').addEventListener('click', () => {
-            tg.close();
-        });
-
-        // Вспомогательные функции форматирования значений из JSON
-        function formatPrice(value) {
-            const clean = String(value).replace(/[^0-9.]/g, '');
-            return clean ? `~$${clean}` : value;
-        }
-
-        function formatMargin(value) {
-            const clean = String(value).replace(/[^0-9.]/g, '');
-            return clean ? `~${clean}%` : value;
-        }
-
-        function formatTrend(value) {
-            let text = String(value).trim();
-            // Вычищаем старые эмодзи, чтобы не дублировать значки роста
-            text = text.replace(/[📈📊]/g, '').trim();
-            return `📈 ${text}`;
-        }
-
-        async function loadMarketData() {
-            // Читаем имя файла, переданное ботом через tgWebAppStartParam
-            const startParam = tg.initDataUnsafe?.start_param;
-
-            // Если параметр есть — берём уникальный файл, иначе резервный data.json
-            const jsonFile = startParam ? `${startParam}.json` : 'data.json';
-
-            // Cache-buster как дополнительная страховка
-            const url = `${jsonFile}?v=${Date.now()}`;
-
-            console.log(`[Bio-Scan]: Загружаем файл → ${url}`);
+        while (attempt < MAX_RETRIES) {
+            attempt++;
 
             try {
+                // Уникальный URL на каждой попытке — GitHub CDN обязан отдать свежую версию
+                const url = `${filename}?nocache=${Date.now()}`;
+
                 const response = await fetch(url, {
-                    method: "GET",
+                    cache: 'no-store',
                     headers: {
-                        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
-                        "Pragma": "no-cache",
-                        "Expires": "0"
-                    },
-                    cache: "no-store"
+                        'Cache-Control': 'no-store, no-cache, must-revalidate',
+                        'Pragma':        'no-cache'
+                    }
                 });
 
+                // Файл ещё не задеплоен (404) или GitHub лежит (5xx)
                 if (!response.ok) {
-                    throw new Error(`HTTP Error: статус ${response.status}`);
+                    console.warn(`[Bio-Scan]: Попытка ${attempt}/${MAX_RETRIES} → HTTP ${response.status}, повтор...`);
+                    showLoader(`⏳ Деплой GitHub Pages... (${attempt}/${MAX_RETRIES})`);
+                    await sleep(RETRY_INTERVAL_MS);
+                    continue;
                 }
 
-                const products = await response.json();
-                console.log(`[Bio-Scan]: Данные успешно обновлены без кэша:`, products);
-                renderCards(products);
+                const data = await response.json();
 
-            } catch (error) {
-                console.error("[Bio-Scan]: Ошибка загрузки →", error);
-                document.getElementById('cards-container').innerHTML =
-                    `<div class="loader" style="color:#ff4d4f;">
-                        ⚠️ Ошибка синхронизации данных. Повторите запрос в боте.
-                     </div>`;
+                // start_param не передавался — показываем что есть без проверки ts
+                if (!expectedTs) {
+                    console.log('[Bio-Scan]: ts не задан → показываем текущие данные');
+                    renderCards(data.products ?? data);
+                    return;
+                }
+
+                // Проверяем: GitHub уже отдаёт новую версию файла?
+                const fileTs = data.timestamp ?? 0;
+                if (fileTs >= expectedTs) {
+                    console.log(`[Bio-Scan]: ✅ Данные актуальны! fileTs=${fileTs} >= expectedTs=${expectedTs}`);
+                    renderCards(data.products);
+                    return;
+                }
+
+                // Timestamp устаревший — CDN ещё держит старую копию
+                console.warn(`[Bio-Scan]: Попытка ${attempt}/${MAX_RETRIES} → fileTs=${fileTs} < expectedTs=${expectedTs}, ждём...`);
+                showLoader(`⏳ Обновление данных... (${attempt}/${MAX_RETRIES})`);
+                await sleep(RETRY_INTERVAL_MS);
+
+            } catch (err) {
+                console.error(`[Bio-Scan]: Ошибка fetch на попытке ${attempt}:`, err);
+                showLoader(`⏳ Повтор подключения... (${attempt}/${MAX_RETRIES})`);
+                await sleep(RETRY_INTERVAL_MS);
             }
         }
 
-        function renderCards(products) {
-            const container = document.getElementById('cards-container');
-            container.innerHTML = ''; // Стираем лоадер или предыдущие карточки
+        // За 40 секунд GitHub так и не обновился
+        console.error('[Bio-Scan]: Превышен лимит ожиданий.');
+        showError('⚠️ Задержка сервера. Закройте и откройте приложение повторно.');
+    }
 
-            if (!products || products.length === 0) {
-                container.innerHTML = `<div class="loader">⚠️ Данные не найдены. Повторите запрос в боте.</div>`;
-                return;
-            }
+    // ─── Вспомогательные утилиты ───────────────────────────────────────────
 
-            products.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                const badgeClass = item.badge_class || 'badge-green';
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
-                card.innerHTML = `
-                    <div class="badge-container">
-                        <span class="${badgeClass}">${item.badge_text}</span>
-                    </div>
-                    <h2>${item.title}</h2>
-                    <div class="desc">${item.desc}</div>
-                    <div class="price-grid">
-                        <div class="price-item">
-                            <div class="price-label">Китай (1688)</div>
-                            <div class="price-value">${formatPrice(item.china_price)}</div>
-                        </div>
-                        <div class="price-item">
-                            <div class="price-label">Рынок СНГ</div>
-                            <div class="price-value">${formatPrice(item.rf_price)}</div>
-                        </div>
-                    </div>
-                    <div class="profit-row">
-                        <div class="profit-label">Ожидаемый профит</div>
-                        <div class="profit-value">${formatMargin(item.margin)}</div>
-                    </div>
-                    <div class="trend-row">
-                        <div class="trend-box">
-                            <span>${formatTrend(item.trend)}</span>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
+    function showLoader(text) {
+        document.getElementById('cards-container').innerHTML =
+            `<div class="loader">${text}</div>`;
+    }
+
+    function showError(text) {
+        document.getElementById('cards-container').innerHTML =
+            `<div class="loader" style="color:#ff4d4f;">${text}</div>`;
+    }
+
+    function formatPrice(value) {
+        const clean = String(value).replace(/[^0-9.]/g, '');
+        return clean ? `~$${clean}` : String(value);
+    }
+
+    function formatMargin(value) {
+        const clean = String(value).replace(/[^0-9.]/g, '');
+        return clean ? `~${clean}%` : String(value);
+    }
+
+    function formatTrend(value) {
+        const text = String(value).trim();
+        return text.startsWith('📈') ? text : `📈 ${text}`;
+    }
+
+    function renderCards(products) {
+        const container = document.getElementById('cards-container');
+        container.innerHTML = '';
+
+        if (!Array.isArray(products) || products.length === 0) {
+            showError('⚠️ Данные не найдены. Повторите запрос в боте.');
+            return;
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            loadMarketData();
+        products.forEach(item => {
+            const card      = document.createElement('div');
+            card.className  = 'card';
+            const badgeClass = item.badge_class || 'badge-green';
+
+            card.innerHTML = `
+                <div class="badge-container">
+                    <span class="${badgeClass}">${item.badge_text}</span>
+                </div>
+                <h2>${item.title}</h2>
+                <div class="desc">${item.desc}</div>
+                <div class="price-grid">
+                    <div class="price-item">
+                        <div class="price-label">Китай (1688)</div>
+                        <div class="price-value">${formatPrice(item.china_price)}</div>
+                    </div>
+                    <div class="price-item">
+                        <div class="price-label">Рынок СНГ</div>
+                        <div class="price-value">${formatPrice(item.rf_price)}</div>
+                    </div>
+                </div>
+                <div class="profit-row">
+                    <div class="profit-label">Ожидаемый профит</div>
+                    <div class="profit-value">${formatMargin(item.margin)}</div>
+                </div>
+                <div class="trend-row">
+                    <span>${formatTrend(item.trend)}</span>
+                </div>
+            `;
+            container.appendChild(card);
         });
-    </script>
-</body>
-</html>
+    }
+
+    // Ждём полной инициализации DOM И Telegram WebApp перед стартом
+    document.addEventListener('DOMContentLoaded', () => {
+        // Небольшой defer гарантирует что tg.initDataUnsafe уже заполнен
+        setTimeout(loadMarketData, 100);
+    });
+</script>
