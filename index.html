@@ -3,61 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bio-Scan Report</title>
+    <title>Bio-Scan Debug</title>
     <style>
-        :root { --bg: #0d1117; --card: #161b22; --text: #ffffff; --red: #E24B4A; --ok: #3B6D11; }
-        body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 16px; margin: 0; }
-        .shock-root { max-width: 600px; margin: auto; }
-        .r-header { border-left: 3px solid var(--red); padding: 10px; background: var(--card); margin-bottom: 20px; }
-        .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .calc-card { background: var(--card); padding: 10px; border-radius: 8px; border: 1px solid #30363d; }
-        .cost-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #30363d; font-size: 13px; }
-        .verdict-box { background: #501313; border: 1px solid #791F1F; padding: 15px; border-radius: 8px; margin-top: 20px; }
+        body { background: #0d1117; color: white; font-family: sans-serif; padding: 20px; }
+        .card { background: #161b22; padding: 15px; border-radius: 8px; border: 1px solid #30363d; }
+        .error { color: #ff4d4f; }
     </style>
 </head>
 <body>
-    <div id="app" class="shock-root">Загрузка данных...</div>
+    <div id="app">Инициализация...</div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-
-        async function init() {
-            // Берем имя файла из параметра startapp
+        // Принудительно вызываем функцию сразу
+        async function start() {
+            const app = document.getElementById('app');
             const params = new URLSearchParams(window.location.search);
             const file = params.get('tgWebAppStartParam') || 'data_8039716884.json';
             
-            try {
-                // Добавляем кэш-бастер (?t=...), чтобы браузер скачал свежий файл
-                const res = await fetch(`${file}?t=${Date.now()}`);
-                const data = await res.json();
-                
-                // Берем первый товар из массива (как на твоем скриншоте)
-                const p = data.products[0]; 
+            app.innerHTML = "Загружаю: " + file;
 
-                document.getElementById('app').innerHTML = `
-                    <div class="r-header">
-                        <div style="font-size:16px; font-weight:bold">${data.category}</div>
-                        <div style="font-size:12px; color:#8b949e">${p.title}</div>
-                    </div>
-                    <div class="calc-grid">
-                        <div class="calc-card"><div style="font-size:10px; color:#8b949e">Закупка</div><div style="font-size:18px; font-weight:bold">${p.china_price}</div></div>
-                        <div class="calc-card"><div style="font-size:10px; color:#8b949e">Маржа</div><div style="font-size:18px; font-weight:bold; color:var(--ok)">${p.margin}</div></div>
-                    </div>
-                    <div style="margin-top:20px;">
-                        <div class="cost-row"><span>Описание</span><span style="color:#8b949e">${p.desc}</span></div>
-                        <div class="cost-row"><span>Цена в РФ</span><span>${p.rf_price}</span></div>
-                    </div>
-                    <div class="verdict-box">
-                        <div style="font-weight:bold; margin-bottom:5px">Вердикт системы</div>
-                        <div style="font-size:13px">${p.trend}. Рекомендуется проверить скрытые косты логистики.</div>
+            try {
+                const response = await fetch(file + '?t=' + new Date().getTime());
+                if (!response.ok) throw new Error("Файл не найден");
+                const data = await response.json();
+                
+                const p = data.products[0];
+                app.innerHTML = `
+                    <div class="card">
+                        <h3>${data.category}</h3>
+                        <p>${p.title}</p>
+                        <hr>
+                        <div style="display:flex; justify-content:space-between">
+                            <span>Закупка: ${p.china_price}</span>
+                            <span style="color:#3B6D11">Маржа: ${p.margin}</span>
+                        </div>
                     </div>
                 `;
-            } catch (e) {
-                document.getElementById('app').innerHTML = `<div style="color:red">Ошибка: ${e.message}. Файл ${file} не найден.</div>`;
+            } catch (err) {
+                app.innerHTML = `<div class="error">ОШИБКА: ${err.message}. Проверь имя файла.</div>`;
             }
         }
-        init();
+        
+        // Запуск
+        setTimeout(start, 500); 
     </script>
 </body>
 </html>
