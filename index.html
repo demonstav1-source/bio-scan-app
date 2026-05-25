@@ -3,47 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bio-Scan Шок-Отчёт</title>
+    <title>Bio-Scan Report</title>
     <style>
-        :root { --font-sans: sans-serif; --border-radius-md: 8px; --color-background-primary: #0d1117; --color-background-secondary: #161b22; --color-text-primary: #ffffff; --color-text-secondary: #8b949e; --color-border-primary: #30363d; }
-        body { background: var(--color-background-primary); color: var(--color-text-primary); font-family: var(--font-sans); padding: 16px; }
+        :root { --bg: #0d1117; --card: #161b22; --text: #ffffff; --red: #E24B4A; --ok: #3B6D11; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 16px; margin: 0; }
         .shock-root { max-width: 600px; margin: auto; }
-        .r-header { border-left: 3px solid #E24B4A; padding: 10px; background: var(--color-background-secondary); margin-bottom: 20px; }
+        .r-header { border-left: 3px solid var(--red); padding: 10px; background: var(--card); margin-bottom: 20px; }
         .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .calc-card { background: var(--color-background-secondary); padding: 10px; border-radius: 8px; border: 1px solid var(--color-border-primary); }
+        .calc-card { background: var(--card); padding: 10px; border-radius: 8px; border: 1px solid #30363d; }
         .cost-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #30363d; font-size: 13px; }
         .verdict-box { background: #501313; border: 1px solid #791F1F; padding: 15px; border-radius: 8px; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <div id="app" class="shock-root">Загрузка анализа...</div>
+    <div id="app" class="shock-root">Загрузка данных...</div>
 
     <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+
         async function init() {
+            // Берем имя файла из параметра startapp
             const params = new URLSearchParams(window.location.search);
             const file = params.get('tgWebAppStartParam') || 'data_8039716884.json';
-            const res = await fetch(file + '?t=' + Date.now());
-            const data = await res.json();
-            const p = data.products[0]; // Берем только первый товар для детального отчета
+            
+            try {
+                // Добавляем кэш-бастер (?t=...), чтобы браузер скачал свежий файл
+                const res = await fetch(`${file}?t=${Date.now()}`);
+                const data = await res.json();
+                
+                // Берем первый товар из массива (как на твоем скриншоте)
+                const p = data.products[0]; 
 
-            document.getElementById('app').innerHTML = `
-                <div class="r-header">
-                    <div class="r-title">${data.category}</div>
-                    <div class="r-subtitle">${p.title}</div>
-                </div>
-                <div class="calc-grid">
-                    <div class="calc-card"><div class="calc-label">Закупка</div><div class="calc-value">${p.china_price}</div></div>
-                    <div class="calc-card"><div class="calc-label">Маржа</div><div class="calc-value" style="color:#3B6D11">${p.margin}</div></div>
-                </div>
-                <div style="margin-top:20px;">
-                    <div class="cost-row"><span>Описание</span><span>${p.desc}</span></div>
-                    <div class="cost-row"><span>Цена в РФ</span><span>${p.rf_price}</span></div>
-                </div>
-                <div class="verdict-box">
-                    <div class="vt">Вердикт системы</div>
-                    <div class="vb">Анализ завершен. ${p.trend}. Рекомендуется проверить скрытые косты логистики.</div>
-                </div>
-            `;
+                document.getElementById('app').innerHTML = `
+                    <div class="r-header">
+                        <div style="font-size:16px; font-weight:bold">${data.category}</div>
+                        <div style="font-size:12px; color:#8b949e">${p.title}</div>
+                    </div>
+                    <div class="calc-grid">
+                        <div class="calc-card"><div style="font-size:10px; color:#8b949e">Закупка</div><div style="font-size:18px; font-weight:bold">${p.china_price}</div></div>
+                        <div class="calc-card"><div style="font-size:10px; color:#8b949e">Маржа</div><div style="font-size:18px; font-weight:bold; color:var(--ok)">${p.margin}</div></div>
+                    </div>
+                    <div style="margin-top:20px;">
+                        <div class="cost-row"><span>Описание</span><span style="color:#8b949e">${p.desc}</span></div>
+                        <div class="cost-row"><span>Цена в РФ</span><span>${p.rf_price}</span></div>
+                    </div>
+                    <div class="verdict-box">
+                        <div style="font-weight:bold; margin-bottom:5px">Вердикт системы</div>
+                        <div style="font-size:13px">${p.trend}. Рекомендуется проверить скрытые косты логистики.</div>
+                    </div>
+                `;
+            } catch (e) {
+                document.getElementById('app').innerHTML = `<div style="color:red">Ошибка: ${e.message}. Файл ${file} не найден.</div>`;
+            }
         }
         init();
     </script>
