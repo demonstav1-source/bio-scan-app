@@ -2,38 +2,50 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Bio-Scan Data</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bio-Scan Шок-Отчёт</title>
     <style>
-        body { background: #0d1117; color: white; font-family: sans-serif; padding: 20px; }
-        .error { color: #ff4d4f; border: 1px solid #ff4d4f; padding: 15px; border-radius: 8px; }
-        .success { color: #3fb950; }
+        :root { --font-sans: sans-serif; --border-radius-md: 8px; --color-background-primary: #0d1117; --color-background-secondary: #161b22; --color-text-primary: #ffffff; --color-text-secondary: #8b949e; --color-border-primary: #30363d; }
+        body { background: var(--color-background-primary); color: var(--color-text-primary); font-family: var(--font-sans); padding: 16px; }
+        .shock-root { max-width: 600px; margin: auto; }
+        .r-header { border-left: 3px solid #E24B4A; padding: 10px; background: var(--color-background-secondary); margin-bottom: 20px; }
+        .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .calc-card { background: var(--color-background-secondary); padding: 10px; border-radius: 8px; border: 1px solid var(--color-border-primary); }
+        .cost-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #30363d; font-size: 13px; }
+        .verdict-box { background: #501313; border: 1px solid #791F1F; padding: 15px; border-radius: 8px; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <div id="app">Загрузка...</div>
+    <div id="app" class="shock-root">Загрузка анализа...</div>
 
     <script>
-        async function loadData() {
-            const appDiv = document.getElementById('app');
-            // Получаем имя файла из параметров запуска (например, data_12345.json)
+        async function init() {
             const params = new URLSearchParams(window.location.search);
-            const startApp = params.get('tgWebAppStartParam') || 'data_8039716884.json'; // Подставь свой файл для теста
-            
-            console.log("Попытка загрузки файла:", startApp);
+            const file = params.get('tgWebAppStartParam') || 'data_8039716884.json';
+            const res = await fetch(file + '?t=' + Date.now());
+            const data = await res.json();
+            const p = data.products[0]; // Берем только первый товар для детального отчета
 
-            try {
-                const response = await fetch(startApp);
-                if (!response.ok) throw new Error(`Файл не найден (код: ${response.status})`);
-                
-                const data = await response.json();
-                appDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-                console.log("Данные успешно получены:", data);
-            } catch (err) {
-                appDiv.innerHTML = `<div class="error">Ошибка: ${err.message}<br>Проверь имя файла в репозитории.</div>`;
-                console.error(err);
-            }
+            document.getElementById('app').innerHTML = `
+                <div class="r-header">
+                    <div class="r-title">${data.category}</div>
+                    <div class="r-subtitle">${p.title}</div>
+                </div>
+                <div class="calc-grid">
+                    <div class="calc-card"><div class="calc-label">Закупка</div><div class="calc-value">${p.china_price}</div></div>
+                    <div class="calc-card"><div class="calc-label">Маржа</div><div class="calc-value" style="color:#3B6D11">${p.margin}</div></div>
+                </div>
+                <div style="margin-top:20px;">
+                    <div class="cost-row"><span>Описание</span><span>${p.desc}</span></div>
+                    <div class="cost-row"><span>Цена в РФ</span><span>${p.rf_price}</span></div>
+                </div>
+                <div class="verdict-box">
+                    <div class="vt">Вердикт системы</div>
+                    <div class="vb">Анализ завершен. ${p.trend}. Рекомендуется проверить скрытые косты логистики.</div>
+                </div>
+            `;
         }
-        loadData();
+        init();
     </script>
 </body>
 </html>
