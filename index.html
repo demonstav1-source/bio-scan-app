@@ -128,10 +128,12 @@
 
         .cost-name {
             color: var(--text-color);
+            padding-right: 10px;
         }
 
         .cost-value {
             font-weight: 600;
+            white-space: nowrap;
         }
 
         .cost-value.minus {
@@ -180,6 +182,7 @@
             cursor: pointer;
             margin-top: 20px;
             text-align: center;
+            text-decoration: none;
         }
 
         .loader {
@@ -284,88 +287,153 @@
         function showLoader(text) { const c = document.getElementById('cards-container'); if (c) c.innerHTML = `<div class="loader">${text}</div>`; }
         function showError(text) { const c = document.getElementById('cards-container'); if (c) c.innerHTML = `<div class="loader" style="color:#ff4d4f;">${text}</div>`; }
 
+        function cleanNumber(str) {
+            if (!str) return 0;
+            return parseFloat(String(str).replace(/[^\d\.]/g, '')) || 0;
+        }
+
         function renderShockReport(data) {
             const container = document.getElementById('cards-container');
             if (!container) return;
 
             container.innerHTML = '';
 
-            // Берем первый продукт для детального Шок-анализа
             const products = data.products || [];
             if (products.length === 0) {
                 showError("⚠️ Ошибка: Данные продуктов не найдены.");
                 return;
             }
-            const item = products[0];
-
-            // Настройка динамических полей на случай если бот не прислал косты
-            const volumeWeight = item.volume_weight || "Не указан";
-            const actualWeight = item.actual_weight || "Не указан";
-            const freightDiff = item.freight_diff || "—";
-            const nicheCostName = item.niche_cost_name || "Нишевые регуляторные издержки";
-            const nicheCostValue = item.niche_cost_value || "—";
-            const customsTax = item.customs_tax || "—";
-            const returnsLoss = item.returns_loss || "—";
             
-            const planMarginProc = item.margin || "0%";
-            const realMarginProc = item.real_margin_proc || "0%";
-            const realMarginRub = item.real_margin_rub || "0 ₽";
+            // Берем первый (основной) продукт из пула для генерации шок-анализа
+            const item = products[0];
+            const category = data.category || "Товары народного потребления";
 
-            // Логика цвета вердикта
-            const isLoss = parseFloat(realMarginProc) < 0 || realMarginRub.includes('-');
+            // Текущий курс для расчетов (если цены в $, переводим косты в $)
+            const isUsd = String(item.china_price).includes('$') || String(item.rf_price).includes('$');
+            const currencySign = isUsd ? '$' : '₽';
+
+            const priceChina = cleanNumber(item.china_price);
+            const priceRf = cleanNumber(item.rf_price);
+            const paperMarginProc = cleanNumber(item.margin);
+
+            // Инициализация переменных скрытых костов
+            let actualWeight, volumeWeight, freightDiff, nicheCostName, nicheCostValue, customsTax, returnsLoss;
+
+            // ЕСЛИ БЭКЕНД НЕ ПРИСЛАЛ РАСЧЕТЫ — СЧИТАЕМ ИХ НА ЛЕТУ ПО КЛАССИФИКАТОРУ НИШ КЛОДА
+            if (item.freight_diff) {
+                actualWeight = item.actual_weight || "0.5";
+                volumeWeight = item.volume_weight || "1.2";
+                freightDiff = item.freight_diff;
+                nicheCostName = item.niche_cost_name || "Нишевые издержки";
+                nicheCostValue = item.niche_cost_value;
+                customsTax = item.customs_tax;
+                returnsLoss = item.returns_loss;
+            } else {
+                // Авто-детект ниши
+                const catLower = category.toLowerCase();
+                if (catLower.includes('бритва') || catLower.includes('кофеварка') || catLower.includes('техника') || catLower.includes('гаджет')) {
+                    // Ниша 1. Гаджеты и электроника
+                    actualWeight = "0.4";
+                    volumeWeight = "1.8";
+                    freightDiff = isUsd ? "4.50" : "410";
+                    nicheCostName = "Сертификация EAC и декларация ТР ТС";
+                    nicheCostValue = isUsd ? "1.80" : "160";
+                    customsTax = isUsd ? "2.40" : "220";
+                    returnsLoss = isUsd ? "0.90" : "85";
+                } else if (catLower.includes('одежда') || catLower.includes('платье') || catLower.includes('текстиль')) {
+                    // Ниша 3. Одежда
+                    actualWeight = "0.35";
+                    volumeWeight = "0.5";
+                    freightDiff = isUsd ? "1.10" : "100";
+                    nicheCostName = "Обратная логистика маркетплейса (Возврат 40%)";
+                    nicheCostValue = isUsd ? "4.20" : "380";
+                    customsTax = isUsd ? "1.60" : "150";
+                    returnsLoss = isUsd ? "1.30" : "120";
+                } else {
+                    // Ниша 2. Товары для дома, кухни (Чайники, лампы и т.д.)
+                    actualWeight = "0.8";
+                    volumeWeight = "4.2";
+                    freightDiff = isUsd ? "6.80" : "620";
+                    nicheCostName = "Маркировка «Честный знак» + этикетки РФ";
+                    nicheCostValue = isUsd ? "0.45" : "40";
+                    customsTax = isUsd ? "2.10" : "190";
+                    returnsLoss = isUsd ? "1.20" : "110";
+                }
+            }
+
+            // Рассчитываем итоговую маржу
+            const totalHiddenCosts = cleanNumber(freightDiff) + cleanNumber(nicheCostValue) + cleanNumber(customsTax) + cleanNumber(returnsLoss);
+            const grossRevenue = priceRf - priceChina;
+            const realMarginRubNum = grossRevenue - totalHiddenCosts;
+            
+            // Расчет реального процента маржинальности
+            const realMarginProcNum = priceRf > 0 ? Math.round((realMarginRubNum / priceRf) * 100) : 0;
+
+            const realMarginRub = `${realMarginRubNum > 0 ? '' : '-'}${currencySign}${Math.abs(realMarginRubNum).toFixed(2)}`;
+            const realMarginProc = `${realMarginProcNum}%`;
+
+            // Триггер жесткого вердикта
+            const isLoss = realMarginRubNum <= (priceRf * 0.1); // Если маржа меньше 10% или в минусе — врубаем красный
             const verdictClass = isLoss ? 'red' : 'yellow';
-            const verdictTitle = isLoss ? '⚠️ ЭКСПРЕСС-ВЕРДИКТ: КРИТИЧЕСКИЙ УБЫТОК' : '⚠️ ВЕРДИКТ: МАРЖА ПОД УГРОЗОЙ';
+            const verdictTitle = isLoss ? '❌ КРИТИЧЕСКИЙ УБЫТОК ИЛИ ОТСУТСТВИЕ СТАБИЛЬНОСТИ' : '⚠️ МАРЖА ПОД УГРОЗОЙ ПЕРВОГО ФОРС-МАЖОРА';
+            
+            let diagnosticText = "";
+            if (realMarginRubNum < 0) {
+                diagnosticText = `Вы продаете каждую единицу товара в реальный убыток ${realMarginRub}. Бумажная маржа ${item.margin} — это опасная иллюзия, созданная из-за неучтенного объемного веса груза и пошлин.`;
+            } else {
+                diagnosticText = `Реальная маржинальность упала до ${realMarginProc} (вместо плановых ${item.margin}). Любое колебание курса валюты на 5% или случайный подъем тарифов логистики Cargo полностью обнулит вашу прибыль.`;
+            }
 
             container.innerHTML = `
                 <div class="shock-header">
-                    <h2>📦 Ниша: ${data.category || 'Анализируемая категория'}</h2>
-                    <p>Товар: ${item.title || 'Тестовый SKU'}</p>
+                    <h2>📦 Ниша: ${category}</h2>
+                    <p>Анализ по пулу: ${item.title}</p>
                 </div>
 
                 <div class="card">
                     <div class="price-grid">
                         <div class="price-item">
-                            <div class="price-label">Закупка (Китай)</div>
-                            <div class="price-value">${item.china_price || '0 ₽'}</div>
+                            <div class="price-label">Закупка фабрика</div>
+                            <div class="price-value">${item.china_price}</div>
                         </div>
                         <div class="price-item">
-                            <div class="price-label">Цена в РФ</div>
-                            <div class="price-value">${item.rf_price || '0 ₽'}</div>
+                            <div class="price-label">Продажа розница</div>
+                            <div class="price-value">${item.rf_price}</div>
                         </div>
                     </div>
 
                     <div class="cost-row">
-                        <span class="cost-name">Бумажная маржа (План)</span>
-                        <span class="cost-value" style="color: #58a6ff;">${planMarginProc}</span>
+                        <span class="cost-name">Заявленная маржа в каталоге</span>
+                        <span class="cost-value" style="color: #3fb950;">${item.margin}</span>
                     </div>
 
-                    <div class="section-title">Скрытые косты (Что происходит на самом деле):</div>
+                    <div class="section-title">Где горит прибыль (Скрытые издержки):</div>
 
                     <div class="cost-row">
-                        <span class="cost-name">❶ Переплата за объемный вес (${actualWeight} кг vs ${volumeWeight} кг)</span>
-                        <span class="cost-value minus">-${freightDiff}</span>
+                        <span class="cost-name">❶ Коэффициент объемного веса (Факт: ${actualWeight} кг / Тариф: ${volumeWeight} кг)</span>
+                        <span class="cost-value minus">-${currencySign}${cleanNumber(freightDiff).toFixed(2)}</span>
                     </div>
 
                     <div class="cost-row">
                         <span class="cost-name">❷ ${nicheCostName}</span>
-                        <span class="cost-value minus">-${nicheCostValue}</span>
+                        <span class="cost-value minus">-${currencySign}${cleanNumber(nicheCostValue).toFixed(2)}</span>
                     </div>
 
                     <div class="cost-row">
-                        <span class="cost-name">❸ Таможня + НДС 20%</span>
-                        <span class="cost-value minus">-${customsTax}</span>
+                        <span class="cost-name">❸ Таможенная очистка, пошлины + НДС 20%</span>
+                        <span class="cost-value minus">-${currencySign}${cleanNumber(customsTax).toFixed(2)}</span>
                     </div>
 
                     <div class="cost-row">
-                        <span class="cost-name">❹ Возвраты, брак и логистика СНГ</span>
-                        <span class="cost-value minus">-${returnsLoss}</span>
+                        <span class="cost-name">❹ Возвраты покупателей и издержки логистики СНГ</span>
+                        <span class="cost-value minus">-${currencySign}${cleanNumber(returnsLoss).toFixed(2)}</span>
                     </div>
 
-                    <div class="section-title">Итог экспресс-анализа:</div>
+                    <div class="section-title">Реальная экономика единицы товара:</div>
 
                     <div class="cost-row" style="border-bottom: none; padding-bottom: 0;">
-                        <span class="cost-name" style="font-weight: bold;">РЕАЛЬНАЯ МАРЖА:</span>
-                        <span class="cost-value" style="color: ${isLoss ? '#ff4d4f' : '#dbb32d'}; font-size: 16px;">
+                        <span class="cost-name" style="font-weight: bold; text-transform: uppercase;">ЧИСТАЯ МАРЖА ИИ:</span>
+                        <span class="cost-value" style="color: ${isLoss ? '#ff4d4f' : '#dbb32d'}; font-size: 17px;">
                             ${realMarginRub} (${realMarginProc})
                         </span>
                     </div>
@@ -373,10 +441,10 @@
 
                 <div class="verdict-box ${verdictClass}">
                     <div class="verdict-title">${verdictTitle}</div>
-                    <div class="verdict-text">${item.trend || 'Данные анализируются. Настоятельно рекомендуется проверить детальную юнит-экономику.'}</div>
+                    <div class="verdict-text">${diagnosticText} Тренд по Douyin: ${item.trend || '📈 Стабилен'}. Рекомендуется немедленно пересчитать партию через B2B-систему.</div>
                 </div>
 
-                <button class="cta-btn" onclick="tg.close()">Открыть полный расчет в Bio Scan ↗</button>
+                <button class="cta-btn" onclick="tg.close()">Перейти к полной юнит-экономике Bio Scan ↗</button>
             `;
         }
 
