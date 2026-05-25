@@ -2,52 +2,387 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bio-Scan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bio-Scan Market Analyzer</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { margin: 0; background: #0d1117; color: white; font-family: sans-serif; }
-        #app { padding: 20px; }
-        .error { color: #ff4d4f; padding: 20px; border: 1px solid #ff4d4f; }
-        /* Здесь будут твои стили, когда данные начнут приходить */
+        :root {
+            --bg-color: #0d1117;
+            --text-color: #ffffff;
+            --card-bg: #161b22;
+            --accent-green: #238636;
+            --accent-purple: #8957e5;
+            --text-muted: #8b949e;
+            --border-color: #30363d;
+            --danger-color: #E24B4A;
+            --warning-color: #dbb32d;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            font-size: 18px;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background-color: #21262d;
+            border: 1px solid var(--border-color);
+            color: #ff4d4f;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        #cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .shock-header {
+            border-left: 3px solid var(--danger-color);
+            padding: 10px 15px;
+            background: var(--card-bg);
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 16px;
+        }
+
+        .shock-header h2 {
+            font-size: 16px;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .shock-header p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin: 4px 0 0 0;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .price-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            background-color: #0d1117;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .price-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .price-value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin: 16px 0 8px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .cost-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+        }
+
+        .cost-name {
+            color: var(--text-color);
+        }
+
+        .cost-value {
+            font-weight: 600;
+        }
+
+        .cost-value.minus {
+            color: #ff4d4f;
+        }
+
+        .verdict-box {
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid transparent;
+        }
+
+        .verdict-box.red {
+            background: rgba(226, 75, 74, 0.15);
+            border-color: var(--danger-color);
+        }
+
+        .verdict-box.yellow {
+            background: rgba(219, 179, 45, 0.15);
+            border-color: var(--warning-color);
+        }
+
+        .verdict-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .verdict-text {
+            font-size: 13px;
+            line-height: 1.4;
+            color: #e6edf3;
+        }
+
+        .cta-btn {
+            display: block;
+            width: 100%;
+            background-color: var(--accent-green);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 200px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
     </style>
 </head>
 <body>
-    <div id="app">Инициализация...</div>
+
+    <div class="header">
+        <h1>🧬 Bio-Scan Analytics</h1>
+        <button id="close-app-btn" class="close-btn">Закрыть</button>
+    </div>
+
+    <div id="cards-container">
+        <div class="loader">⏳ Инициализация подсистем Шок-Отчёта...</div>
+    </div>
 
     <script>
-        async function updateApp() {
-            const app = document.getElementById('app');
-            const params = new URLSearchParams(window.location.search);
-            // Получаем имя файла, которое передает бот
-            const file = params.get('tgWebAppStartParam') || 'data_8039716884.json';
-            
-            app.innerHTML = "Загрузка данных: " + file;
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
 
-            try {
-                // Кэш-бастер (?t=...) — самое важное для мобильных версий
-                const response = await fetch(`${file}?t=${new Date().getTime()}`);
-                if (!response.ok) throw new Error(`Ошибка ${response.status}`);
-                
-                const data = await response.json();
-                
-                // Вывод данных, чтобы убедиться, что они свежие
-                const p = data.products[0];
-                app.innerHTML = `
-                    <div style="background:#161b22; padding:15px; border-radius:10px;">
-                        <h3>${data.category}</h3>
-                        <p>${p.title}</p>
-                        <div style="font-size: 20px; font-weight: bold; color: #3fb950;">
-                            Маржа: ${p.margin}
-                        </div>
-                    </div>
-                `;
-            } catch (err) {
-                app.innerHTML = `<div class="error">Ошибка: ${err.message}. Проверь, существует ли файл ${file} в репозитории.</div>`;
-            }
+        const closeBtn = document.getElementById('close-app-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => tg.close());
         }
 
-        // Запускаем при открытии
-        updateApp();
+        function getStartParam() {
+            const fromTg = tg.initDataUnsafe?.start_param;
+            if (fromTg) return fromTg;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const startApp = urlParams.get('startapp') || urlParams.get('tgWebAppStartParam');
+            if (startApp) return startApp;
+
+            return null;
+        }
+
+        function parseStartParam(param) {
+            if (!param) return { filename: 'data.json', expectedTs: null };
+            const match = param.match(/^(data_\d+)_ts_(\d+)$/);
+            if (match) {
+                return {
+                    filename: `${match[1]}.json`,
+                    expectedTs: parseInt(match[2], 10)
+                };
+            }
+            return { filename: 'data.json', expectedTs: null };
+        }
+
+        async function loadMarketData() {
+            const startParam = getStartParam();
+            const { filename, expectedTs } = parseStartParam(startParam);
+
+            const RETRY_INTERVAL_MS = 2000;
+            const MAX_RETRIES = 30;
+            let attempt = 0;
+
+            while (attempt < MAX_RETRIES) {
+                attempt++;
+                try {
+                    const url = `${filename}?nocache=${Date.now()}`;
+                    const response = await fetch(url, {
+                        cache: "no-store",
+                        headers: { "Pragma": "no-cache", "Cache-Control": "no-cache" }
+                    });
+
+                    if (!response.ok) {
+                        showLoader(`⏳ Генерация витрины данных GitHub Pages... (${attempt}/${MAX_RETRIES})`);
+                        await sleep(RETRY_INTERVAL_MS);
+                        continue;
+                    }
+
+                    const data = await response.json();
+                    const fileTs = data.timestamp ?? 0;
+
+                    if (!expectedTs || fileTs >= expectedTs) {
+                        renderShockReport(data);
+                        return;
+                    }
+
+                    showLoader(`⏳ Синхронизация расчетов ИИ... (${attempt}/${MAX_RETRIES})`);
+                    await sleep(RETRY_INTERVAL_MS);
+
+                } catch (err) {
+                    showLoader(`⏳ Подключение к серверу аналитики... (${attempt}/${MAX_RETRIES})`);
+                    await sleep(RETRY_INTERVAL_MS);
+                }
+            }
+
+            showError("⚠️ Превышено время ожидания. Пожалуйста, переоткройте отчет из бота.");
+        }
+
+        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+        function showLoader(text) { const c = document.getElementById('cards-container'); if (c) c.innerHTML = `<div class="loader">${text}</div>`; }
+        function showError(text) { const c = document.getElementById('cards-container'); if (c) c.innerHTML = `<div class="loader" style="color:#ff4d4f;">${text}</div>`; }
+
+        function renderShockReport(data) {
+            const container = document.getElementById('cards-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            // Берем первый продукт для детального Шок-анализа
+            const products = data.products || [];
+            if (products.length === 0) {
+                showError("⚠️ Ошибка: Данные продуктов не найдены.");
+                return;
+            }
+            const item = products[0];
+
+            // Настройка динамических полей на случай если бот не прислал косты
+            const volumeWeight = item.volume_weight || "Не указан";
+            const actualWeight = item.actual_weight || "Не указан";
+            const freightDiff = item.freight_diff || "—";
+            const nicheCostName = item.niche_cost_name || "Нишевые регуляторные издержки";
+            const nicheCostValue = item.niche_cost_value || "—";
+            const customsTax = item.customs_tax || "—";
+            const returnsLoss = item.returns_loss || "—";
+            
+            const planMarginProc = item.margin || "0%";
+            const realMarginProc = item.real_margin_proc || "0%";
+            const realMarginRub = item.real_margin_rub || "0 ₽";
+
+            // Логика цвета вердикта
+            const isLoss = parseFloat(realMarginProc) < 0 || realMarginRub.includes('-');
+            const verdictClass = isLoss ? 'red' : 'yellow';
+            const verdictTitle = isLoss ? '⚠️ ЭКСПРЕСС-ВЕРДИКТ: КРИТИЧЕСКИЙ УБЫТОК' : '⚠️ ВЕРДИКТ: МАРЖА ПОД УГРОЗОЙ';
+
+            container.innerHTML = `
+                <div class="shock-header">
+                    <h2>📦 Ниша: ${data.category || 'Анализируемая категория'}</h2>
+                    <p>Товар: ${item.title || 'Тестовый SKU'}</p>
+                </div>
+
+                <div class="card">
+                    <div class="price-grid">
+                        <div class="price-item">
+                            <div class="price-label">Закупка (Китай)</div>
+                            <div class="price-value">${item.china_price || '0 ₽'}</div>
+                        </div>
+                        <div class="price-item">
+                            <div class="price-label">Цена в РФ</div>
+                            <div class="price-value">${item.rf_price || '0 ₽'}</div>
+                        </div>
+                    </div>
+
+                    <div class="cost-row">
+                        <span class="cost-name">Бумажная маржа (План)</span>
+                        <span class="cost-value" style="color: #58a6ff;">${planMarginProc}</span>
+                    </div>
+
+                    <div class="section-title">Скрытые косты (Что происходит на самом деле):</div>
+
+                    <div class="cost-row">
+                        <span class="cost-name">❶ Переплата за объемный вес (${actualWeight} кг vs ${volumeWeight} кг)</span>
+                        <span class="cost-value minus">-${freightDiff}</span>
+                    </div>
+
+                    <div class="cost-row">
+                        <span class="cost-name">❷ ${nicheCostName}</span>
+                        <span class="cost-value minus">-${nicheCostValue}</span>
+                    </div>
+
+                    <div class="cost-row">
+                        <span class="cost-name">❸ Таможня + НДС 20%</span>
+                        <span class="cost-value minus">-${customsTax}</span>
+                    </div>
+
+                    <div class="cost-row">
+                        <span class="cost-name">❹ Возвраты, брак и логистика СНГ</span>
+                        <span class="cost-value minus">-${returnsLoss}</span>
+                    </div>
+
+                    <div class="section-title">Итог экспресс-анализа:</div>
+
+                    <div class="cost-row" style="border-bottom: none; padding-bottom: 0;">
+                        <span class="cost-name" style="font-weight: bold;">РЕАЛЬНАЯ МАРЖА:</span>
+                        <span class="cost-value" style="color: ${isLoss ? '#ff4d4f' : '#dbb32d'}; font-size: 16px;">
+                            ${realMarginRub} (${realMarginProc})
+                        </span>
+                    </div>
+                </div>
+
+                <div class="verdict-box ${verdictClass}">
+                    <div class="verdict-title">${verdictTitle}</div>
+                    <div class="verdict-text">${item.trend || 'Данные анализируются. Настоятельно рекомендуется проверить детальную юнит-экономику.'}</div>
+                </div>
+
+                <button class="cta-btn" onclick="tg.close()">Открыть полный расчет в Bio Scan ↗</button>
+            `;
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            setTimeout(loadMarketData, 100);
+        });
     </script>
 </body>
 </html>
