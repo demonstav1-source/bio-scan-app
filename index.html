@@ -2,65 +2,38 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bio-Scan Analytics</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Bio-Scan Data</title>
     <style>
-        :root { --bg-color: #0d1117; --text-primary: #ffffff; --text-secondary: #8b949e; --border: #30363d; --danger: #E24B4A; --ok: #3fb950; }
-        body { font-family: sans-serif; background: var(--bg-color); color: var(--text-primary); margin: 0; padding: 16px; }
-        .shock-root { max-width: 600px; margin: auto; }
-        .r-header { border-left: 3px solid var(--danger); padding: 10px 15px; background: #161b22; border-radius: 0 8px 8px 0; margin-bottom: 20px; }
-        .r-title { font-size: 16px; font-weight: bold; margin: 0; }
-        .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .calc-card { background: #161b22; padding: 12px; border-radius: 8px; border: 1px solid var(--border); }
-        .calc-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; }
-        .calc-value { font-size: 18px; font-weight: bold; margin-top: 5px; }
-        .cost-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-        .verdict-box { background: #501313; border: 1px solid #791F1F; padding: 15px; border-radius: 8px; margin-top: 20px; }
+        body { background: #0d1117; color: white; font-family: sans-serif; padding: 20px; }
+        .error { color: #ff4d4f; border: 1px solid #ff4d4f; padding: 15px; border-radius: 8px; }
+        .success { color: #3fb950; }
     </style>
 </head>
 <body>
-    <div id="app" class="shock-root">
-        <div class="loader">Загрузка данных анализа...</div>
-    </div>
+    <div id="app">Загрузка...</div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-
-        async function init() {
+        async function loadData() {
+            const appDiv = document.getElementById('app');
+            // Получаем имя файла из параметров запуска (например, data_12345.json)
             const params = new URLSearchParams(window.location.search);
-            const filename = params.get('startapp') || 'data.json';
+            const startApp = params.get('tgWebAppStartParam') || 'data_8039716884.json'; // Подставь свой файл для теста
             
+            console.log("Попытка загрузки файла:", startApp);
+
             try {
-                const response = await fetch(filename + '?t=' + Date.now());
+                const response = await fetch(startApp);
+                if (!response.ok) throw new Error(`Файл не найден (код: ${response.status})`);
+                
                 const data = await response.json();
-                render(data);
-            } catch (e) {
-                document.getElementById('app').innerHTML = "Ошибка загрузки данных.";
+                appDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                console.log("Данные успешно получены:", data);
+            } catch (err) {
+                appDiv.innerHTML = `<div class="error">Ошибка: ${err.message}<br>Проверь имя файла в репозитории.</div>`;
+                console.error(err);
             }
         }
-
-        function render(data) {
-            const p = data.products[0]; // Берем первый продукт для примера
-            document.getElementById('app').innerHTML = `
-                <div class="r-header">
-                    <p class="r-title">${data.category}</p>
-                </div>
-                <div class="calc-grid">
-                    <div class="calc-card"><div class="calc-label">Закупка</div><div class="calc-value">${p.china_price}</div></div>
-                    <div class="calc-card"><div class="calc-label">Маржа (план)</div><div class="calc-value" style="color:var(--ok)">${p.margin}</div></div>
-                </div>
-                <div class="section">
-                    <div class="cost-row"><span>Прогноз тренда</span><span style="color:#dbb32d">${p.trend}</span></div>
-                    <div class="cost-row"><span>Описание</span><span>${p.desc}</span></div>
-                </div>
-                <div class="verdict-box">
-                    <p><strong>Диагноз:</strong> ${p.title} — данные проанализированы.</p>
-                </div>
-            `;
-        }
-        init();
+        loadData();
     </script>
 </body>
 </html>
