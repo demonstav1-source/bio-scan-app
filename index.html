@@ -3,49 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bio-Scan Debug</title>
+    <title>Bio-Scan</title>
     <style>
-        body { background: #0d1117; color: white; font-family: sans-serif; padding: 20px; }
-        .card { background: #161b22; padding: 15px; border-radius: 8px; border: 1px solid #30363d; }
-        .error { color: #ff4d4f; }
+        body { margin: 0; background: #0d1117; color: white; font-family: sans-serif; }
+        #app { padding: 20px; }
+        .error { color: #ff4d4f; padding: 20px; border: 1px solid #ff4d4f; }
+        /* Здесь будут твои стили, когда данные начнут приходить */
     </style>
 </head>
 <body>
     <div id="app">Инициализация...</div>
 
     <script>
-        // Принудительно вызываем функцию сразу
-        async function start() {
+        async function updateApp() {
             const app = document.getElementById('app');
             const params = new URLSearchParams(window.location.search);
+            // Получаем имя файла, которое передает бот
             const file = params.get('tgWebAppStartParam') || 'data_8039716884.json';
             
-            app.innerHTML = "Загружаю: " + file;
+            app.innerHTML = "Загрузка данных: " + file;
 
             try {
-                const response = await fetch(file + '?t=' + new Date().getTime());
-                if (!response.ok) throw new Error("Файл не найден");
+                // Кэш-бастер (?t=...) — самое важное для мобильных версий
+                const response = await fetch(`${file}?t=${new Date().getTime()}`);
+                if (!response.ok) throw new Error(`Ошибка ${response.status}`);
+                
                 const data = await response.json();
                 
+                // Вывод данных, чтобы убедиться, что они свежие
                 const p = data.products[0];
                 app.innerHTML = `
-                    <div class="card">
+                    <div style="background:#161b22; padding:15px; border-radius:10px;">
                         <h3>${data.category}</h3>
                         <p>${p.title}</p>
-                        <hr>
-                        <div style="display:flex; justify-content:space-between">
-                            <span>Закупка: ${p.china_price}</span>
-                            <span style="color:#3B6D11">Маржа: ${p.margin}</span>
+                        <div style="font-size: 20px; font-weight: bold; color: #3fb950;">
+                            Маржа: ${p.margin}
                         </div>
                     </div>
                 `;
             } catch (err) {
-                app.innerHTML = `<div class="error">ОШИБКА: ${err.message}. Проверь имя файла.</div>`;
+                app.innerHTML = `<div class="error">Ошибка: ${err.message}. Проверь, существует ли файл ${file} в репозитории.</div>`;
             }
         }
-        
-        // Запуск
-        setTimeout(start, 500); 
+
+        // Запускаем при открытии
+        updateApp();
     </script>
 </body>
 </html>
