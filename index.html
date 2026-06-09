@@ -1,456 +1,655 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bio-Scan Market Analyzer</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root {
-            --bg-color: #0d1117;
-            --text-color: #ffffff;
-            --card-bg: #161b22;
-            --accent-green: #238636;
-            --accent-purple: #8957e5;
-            --text-muted: #8b949e;
-            --border-color: #30363d;
-            --danger-color: #E24B4A;
-            --warning-color: #dbb32d;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 16px;
-            box-sizing: border-box;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .header h1 {
-            font-size: 18px;
-            margin: 0;
-            font-weight: 600;
-        }
-
-        .close-btn {
-            background-color: #21262d;
-            border: 1px solid var(--border-color);
-            color: #ff4d4f;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        #cards-container {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .shock-header {
-            border-left: 3px solid var(--danger-color);
-            padding: 10px 15px;
-            background: var(--card-bg);
-            border-radius: 0 8px 8px 0;
-            margin-bottom: 16px;
-        }
-
-        .shock-header h2 {
-            font-size: 16px;
-            margin: 0;
-            font-weight: 600;
-        }
-
-        .shock-header p {
-            font-size: 12px;
-            color: var(--text-muted);
-            margin: 4px 0 0 0;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 16px;
-        }
-
-        .price-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            background-color: #0d1117;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
-
-        .price-label {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-            text-transform: uppercase;
-        }
-
-        .price-value {
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .section-title {
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin: 16px 0 8px 0;
-            letter-spacing: 0.5px;
-        }
-
-        .cost-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 13px;
-        }
-
-        .cost-name {
-            color: var(--text-color);
-            padding-right: 10px;
-        }
-
-        .cost-value {
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .cost-value.minus {
-            color: #ff4d4f;
-        }
-
-        .verdict-box {
-            padding: 16px;
-            border-radius: 8px;
-            margin-top: 20px;
-            border: 1px solid transparent;
-        }
-
-        .verdict-box.red {
-            background: rgba(226, 75, 74, 0.15);
-            border-color: var(--danger-color);
-        }
-
-        .verdict-box.yellow {
-            background: rgba(219, 179, 45, 0.15);
-            border-color: var(--warning-color);
-        }
-
-        .verdict-title {
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 6px;
-        }
-
-        .verdict-text {
-            font-size: 13px;
-            line-height: 1.4;
-            color: #e6edf3;
-        }
-
-        .cta-btn {
-            display: block;
-            width: 100%;
-            background-color: var(--accent-green);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-            text-align: center;
-            text-decoration: none;
-        }
-
-        .loader {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            min-height: 200px;
-            font-size: 14px;
-            color: var(--text-muted);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bio-Scan · Шок-Отчёт</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:          #0a0c10;
+    --surface:     #131820;
+    --surface-2:   #1a2030;
+    --border:      #252d3d;
+    --border-hi:   #2e3a50;
+    --text:        #e2e8f0;
+    --text-muted:  #6e7a8a;
+    --text-dim:    #3d4a5c;
+    --red:         #e63946;
+    --red-bg:      rgba(230,57,70,.12);
+    --amber:       #f4a261;
+    --amber-bg:    rgba(244,162,97,.10);
+    --teal:        #06d6a0;
+    --teal-bg:     rgba(6,214,160,.10);
+    --mono:        'JetBrains Mono', monospace;
+    --sans:        'Inter', system-ui, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: var(--bg); }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    padding: 0 0 80px;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: rgba(10,12,16,.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: .02em;
+  }
+  .topbar-brand span.dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 6px var(--red);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+  .close-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px solid var(--border-hi);
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+  }
+  .close-btn:hover { color: var(--text); border-color: var(--text-muted); }
+  .state-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    gap: 16px;
+    padding: 32px 24px;
+    text-align: center;
+  }
+  .state-screen .label {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: .06em;
+  }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 2px solid var(--border-hi);
+    border-top-color: var(--red);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .report-head { padding: 20px 16px 0; }
+  .report-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    color: var(--red);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .report-title {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .report-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+  .niche-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--border-hi);
+    border-radius: 20px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--amber);
+    letter-spacing: .04em;
+  }
+  .cards-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 16px 16px 0;
+  }
+  .product-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .card-header {
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .card-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-dim);
+    letter-spacing: .1em;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .card-meta { flex: 1; min-width: 0; }
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 4px;
+    word-break: break-word;
+  }
+  .card-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .card-badge {
+    flex-shrink: 0;
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    padding: 3px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .badge-green { background: rgba(6,214,160,.15); color: var(--teal); border: 1px solid rgba(6,214,160,.3); }
+  .badge-purple { background: rgba(137,87,229,.15); color: #a78bfa; border: 1px solid rgba(137,87,229,.3); }
+  .price-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--border);
+  }
+  .price-cell { padding: 12px 16px; }
+  .price-cell:first-child { border-right: 1px solid var(--border); }
+  .price-cell-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .price-cell-value {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .price-cell-value.buy { color: var(--text-muted); }
+  .price-cell-value.sell { color: var(--teal); }
+  .paper-margin {
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  .paper-margin-label { font-size: 11px; color: var(--text-muted); }
+  .paper-margin-value {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: #a78bfa;
+  }
+  .destruction-bar-wrap { padding: 14px 16px 0; }
+  .destruction-bar-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .destruction-bar-track {
+    height: 8px;
+    background: var(--surface-2);
+    border-radius: 4px;
+    overflow: visible;
+    position: relative;
+    border: 1px solid var(--border);
+  }
+  .destruction-bar-paper {
+    position: absolute;
+    top: 0; left: 0;
+    height: 100%;
+    background: #a78bfa;
+    border-radius: 4px;
+    opacity: .35;
+  }
+  .destruction-bar-real {
+    position: absolute;
+    top: 0; left: 0;
+    height: 100%;
+    border-radius: 4px;
+    transition: width .6s ease;
+  }
+  .bar-real-good { background: var(--teal); }
+  .bar-real-warn { background: var(--amber); }
+  .bar-real-bad  { background: var(--red); }
+  .destruction-bar-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+  .costs-section { padding: 14px 16px 0; }
+  .costs-section-title {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .cost-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .cost-item:last-child { border-bottom: none; }
+  .cost-item-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  .cost-idx {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    margin-top: 1px;
+    width: 16px;
+  }
+  .cost-name { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+  .cost-val {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--red);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .real-margin-box {
+    margin: 14px 16px 0;
+    padding: 12px 14px;
+    background: var(--surface-2);
+    border-radius: 8px;
+    border: 1px solid var(--border-hi);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .real-margin-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .real-margin-value {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .real-margin-value.good { color: var(--teal); }
+  .real-margin-value.warn { color: var(--amber); }
+  .real-margin-value.bad  { color: var(--red); }
+  .verdict-box {
+    margin: 14px 16px 16px;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+  }
+  .verdict-box.good { background: var(--teal-bg); border-color: rgba(6,214,160,.3); }
+  .verdict-box.warn { background: var(--amber-bg); border-color: rgba(244,162,97,.3); }
+  .verdict-box.bad  { background: var(--red-bg); border-color: rgba(230,57,70,.3); }
+  .verdict-title { font-size: 12px; font-weight: 700; margin-bottom: 6px; letter-spacing: .01em; }
+  .verdict-box.good .verdict-title { color: var(--teal); }
+  .verdict-box.warn .verdict-title { color: var(--amber); }
+  .verdict-box.bad  .verdict-title { color: var(--red); }
+  .verdict-text { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
+  .verdict-trend {
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .bottom-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    padding: 12px 16px;
+    background: rgba(10,12,16,.96);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+  }
+  .cta-btn {
+    width: 100%;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 16px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: .01em;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+  .cta-btn:active { opacity: .8; }
+  .report-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 16px;
+    margin-bottom: 16px;
+  }
+  .report-divider-line { flex: 1; height: 1px; background: var(--border); }
+  .report-divider-text {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+</style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>🧬 Bio-Scan Analytics</h1>
-        <button id="close-app-btn" class="close-btn">Закрыть</button>
-    </div>
+<div class="topbar">
+  <div class="topbar-brand">
+    <span class="dot"></span>
+    BIO-SCAN · ШУРФ МАРЖИ
+  </div>
+  <button class="close-btn" id="close-btn">ESC ✕</button>
+</div>
 
-    <div id="cards-container">
-        <div class="loader">⏳ Инициализация подсистем Шок-Отчёта...</div>
-    </div>
+<div id="root">
+  <div class="state-screen">
+    <div class="spinner"></div>
+    <div class="label">ИНИЦИАЛИЗАЦИЯ АУДИТА...</div>
+  </div>
+</div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+<div class="bottom-bar">
+  <button class="cta-btn" id="cta-btn">Закрыть Bio-Scan</button>
+</div>
 
-        const closeBtn = document.getElementById('close-app-btn');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => tg.close());
-        }
+<script>
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
 
-        function getStartParam() {
-            const fromTg = tg.initDataUnsafe?.start_param;
-            if (fromTg) return fromTg;
+document.getElementById('close-btn').addEventListener('click', () => tg.close());
+document.getElementById('cta-btn').addEventListener('click', () => tg.close());
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const startApp = urlParams.get('startapp') || urlParams.get('tgWebAppStartParam');
-            if (startApp) return startApp;
+function getStartParam() {
+  const fromTg = tg?.initDataUnsafe?.start_param;
+  if (fromTg) return fromTg;
+  const p = new URLSearchParams(window.location.search);
+  return p.get('startapp') || p.get('tgWebAppStartParam') || null;
+}
 
-            return null;
-        }
+function parseStartParam(param) {
+  if (!param) return { filename: 'data.json', expectedTs: null };
+  const m = param.match(/^(data_\d+)_ts_(\d+)$/);
+  if (m) return { filename: m[1] + '.json', expectedTs: parseInt(m[2], 10) };
+  return { filename: 'data.json', expectedTs: null };
+}
 
-        function parseStartParam(param) {
-            if (!param) return { filename: 'data.json', expectedTs: null };
-            const match = param.match(/^(data_\d+)_ts_(\d+)$/);
-            if (match) {
-                return {
-                    filename: `${match[1]}.json`,
-                    expectedTs: parseInt(match[2], 10)
-                };
-            }
-            return { filename: 'data.json', expectedTs: null };
-        }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-        async function loadMarketData() {
-            const startParam = getStartParam();
-            const { filename, expectedTs } = parseStartParam(startParam);
+function setRoot(html) {
+  document.getElementById('root').innerHTML = html;
+}
 
-            const RETRY_INTERVAL_MS = 2000;
-            const MAX_RETRIES = 30;
-            let attempt = 0;
+function showLoading(msg) {
+  setRoot('<div class="state-screen"><div class="spinner"></div><div class="label">' + msg + '</div></div>');
+}
 
-            while (attempt < MAX_RETRIES) {
-                attempt++;
-                try {
-                    const url = `${filename}?nocache=${Date.now()}`;
-                    const response = await fetch(url, {
-                        cache: "no-store",
-                        headers: { "Pragma": "no-cache", "Cache-Control": "no-cache" }
-                    });
+function showError(msg) {
+  setRoot('<div class="state-screen"><div style="font-size:28px">⚠️</div><div class="label" style="color:var(--red)">' + msg + '</div></div>');
+}
 
-                    if (!response.ok) {
-                        showLoader(`⏳ Генерация витрины данных GitHub Pages... (${attempt}/${MAX_RETRIES})`);
-                        await sleep(RETRY_INTERVAL_MS);
-                        continue;
-                    }
+function toNum(str) {
+  if (str == null) return 0;
+  return parseFloat(String(str).replace(/[^\d.]/g, '')) || 0;
+}
 
-                    const data = await response.json();
-                    const fileTs = data.timestamp ?? 0;
+function detectNiche(category) {
+  const c = (category || '').toLowerCase();
+  const electronics = ['электроник','гаджет','телефон','смартфон','ноутбук','планшет','наушник','колонк','зарядк','powerbank','фотоаппарат','техник','компьютер','монитор','камер','бритва','кофеварк','блендер'];
+  const apparel = ['одежда','платье','джинс','куртк','пальто','обувь','кроссовк','туфл','ботинк','футболк','свитер','текстил','носк','нижн','купальник','спортивн'];
+  if (electronics.some(w => c.includes(w))) return 'electronics';
+  if (apparel.some(w => c.includes(w))) return 'apparel';
+  return 'general';
+}
 
-                    if (!expectedTs || fileTs >= expectedTs) {
-                        renderShockReport(data);
-                        return;
-                    }
+function getHiddenCosts(niche, priceChina, priceRf, isUsd) {
+  const s = function(n) { return isUsd ? n : Math.round(n * 90); };
+  if (niche === 'electronics') {
+    return [
+      { idx: '①', name: 'Объёмный вес груза (физ. вес мал, габариты велики)', val: s(parseFloat((priceChina * 0.35 + 2.5).toFixed(2))) },
+      { idx: '②', name: 'Сертификация EAC / Нотификация ХС — разово на партию', val: s(parseFloat((priceChina * 0.12 + 1.0).toFixed(2))) },
+      { idx: '③', name: 'Пошлина 15% + таможенная очистка декларации', val: s(parseFloat((priceRf * 0.055 + 1.5).toFixed(2))) },
+      { idx: '④', name: 'Логистика маркетплейса + % невыкупов (~8%)', val: s(parseFloat((priceRf * 0.04).toFixed(2))) },
+    ];
+  }
+  if (niche === 'apparel') {
+    return [
+      { idx: '①', name: 'Авиа/авто-фрахт (лёгкий товар, низкий тариф)', val: s(parseFloat((priceChina * 0.08 + 0.8).toFixed(2))) },
+      { idx: '②', name: 'Обратная логистика: возвраты в нише ~40% от оборота', val: s(parseFloat((priceRf * 0.22).toFixed(2))) },
+      { idx: '③', name: 'Пошлина + таможенная очистка (ставка ниша)', val: s(parseFloat((priceRf * 0.045 + 1.0).toFixed(2))) },
+      { idx: '④', name: 'Маркировка «Честный знак» + этикетки состава', val: s(parseFloat((priceChina * 0.06 + 0.5).toFixed(2))) },
+    ];
+  }
+  return [
+    { idx: '①', name: 'Морской / авто-фрахт + склад в Москве', val: s(parseFloat((priceChina * 0.28 + 1.8).toFixed(2))) },
+    { idx: '②', name: 'Маркировка «Честный знак» + этикетки РФ', val: s(parseFloat((priceChina * 0.04 + 0.35).toFixed(2))) },
+    { idx: '③', name: 'Пошлина + таможенная очистка декларации', val: s(parseFloat((priceRf * 0.05 + 1.2).toFixed(2))) },
+    { idx: '④', name: 'Складская обработка и комиссия маркетплейса', val: s(parseFloat((priceRf * 0.05).toFixed(2))) },
+  ];
+}
 
-                    showLoader(`⏳ Синхронизация расчетов ИИ... (${attempt}/${MAX_RETRIES})`);
-                    await sleep(RETRY_INTERVAL_MS);
+function fmtCurrency(val, isUsd) {
+  var sign = val < 0 ? '-' : '';
+  if (isUsd) return sign + '$' + Math.abs(val).toFixed(2);
+  return sign + '₽' + Math.abs(Math.round(val)).toLocaleString('ru');
+}
 
-                } catch (err) {
-                    showLoader(`⏳ Подключение к серверу аналитики... (${attempt}/${MAX_RETRIES})`);
-                    await sleep(RETRY_INTERVAL_MS);
-                }
-            }
+function escHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
-            showError("⚠️ Превышено время ожидания. Пожалуйста, переоткройте отчет из бота.");
-        }
+function buildCard(item, index, niche, isUsd) {
+  var priceChina = toNum(item.china_price);
+  var priceRf    = toNum(item.rf_price);
+  var costs      = getHiddenCosts(niche, priceChina, priceRf, isUsd);
+  var totalCosts = costs.reduce(function(acc, c) { return acc + c.val; }, 0);
+  var gross      = priceRf - priceChina;
+  var realMargin = gross - totalCosts;
+  var realPct    = priceRf > 0 ? Math.round((realMargin / priceRf) * 100) : 0;
+  var paperPct   = toNum(item.margin);
+  var isGood = realPct >= 20;
+  var isWarn = realPct >= 8 && realPct < 20;
+  var isBad  = realPct < 8;
+  var state  = isBad ? 'bad' : (isWarn ? 'warn' : 'good');
+  var verdictTitle = isBad
+    ? '❌ КРИТИЧЕСКИЙ УБЫТОК — маржа ниже порога выживания'
+    : (isWarn ? '⚠️ МАРЖА ПОД УГРОЗОЙ при любом форс-мажоре' : '✅ ПРИЕМЛЕМАЯ МАРЖА — контролируйте издержки');
+  var verdictText = '';
+  if (realMargin < 0) {
+    verdictText = 'Каждая проданная единица приносит реальный убыток ' + fmtCurrency(realMargin, isUsd) + '. Бумажная маржа ' + escHtml(item.margin) + ' — иллюзия: не учтены фрахт, пошлины и возвраты.';
+  } else if (isWarn) {
+    verdictText = 'Реальная маржинальность упала до ' + realPct + '% вместо плановых ' + escHtml(item.margin) + '. Рост курса на 5% или разовый подъём тарифов Cargo обнулят прибыль полностью.';
+  } else {
+    verdictText = 'Юнит-экономика работает при текущих ценах. Сохраняйте подушку: отслеживайте тарифы фрахта и процент возвратов ежемесячно.';
+  }
+  var barPaper = Math.min(100, Math.max(0, paperPct));
+  var barReal  = Math.min(100, Math.max(0, realPct));
+  var barClass = isBad ? 'bar-real-bad' : (isWarn ? 'bar-real-warn' : 'bar-real-good');
+  var badgeClass = (item.badge_class === 'badge-purple') ? 'badge-purple' : 'badge-green';
+  var costsHtml = costs.map(function(c) {
+    return '<div class="cost-item">'
+      + '<div class="cost-item-left">'
+      + '<span class="cost-idx">' + c.idx + '</span>'
+      + '<span class="cost-name">' + escHtml(c.name) + '</span>'
+      + '</div>'
+      + '<span class="cost-val">−' + fmtCurrency(c.val, isUsd).replace(/^-/, '') + '</span>'
+      + '</div>';
+  }).join('');
+  var realFmt = fmtCurrency(realMargin, isUsd);
+  return '<div class="product-card">'
+    + '<div class="card-header">'
+    + '<span class="card-num">ТОВАР ' + (index + 1) + '</span>'
+    + '<div class="card-meta">'
+    + '<div class="card-title">' + escHtml(item.title) + '</div>'
+    + '<div class="card-desc">' + escHtml(item.desc) + '</div>'
+    + '</div>'
+    + '<span class="card-badge ' + badgeClass + '">' + escHtml(item.badge_text || '') + '</span>'
+    + '</div>'
+    + '<div class="price-row">'
+    + '<div class="price-cell"><div class="price-cell-label">ЗАКУПКА</div><div class="price-cell-value buy">' + escHtml(item.china_price) + '</div></div>'
+    + '<div class="price-cell"><div class="price-cell-label">ПРОДАЖА</div><div class="price-cell-value sell">' + escHtml(item.rf_price) + '</div></div>'
+    + '</div>'
+    + '<div class="paper-margin"><span class="paper-margin-label">Заявленная маржа ИИ</span><span class="paper-margin-value">' + escHtml(item.margin) + '</span></div>'
+    + '<div class="destruction-bar-wrap">'
+    + '<div class="destruction-bar-label">ВИЗУАЛИЗАЦИЯ РАЗРУШЕНИЯ МАРЖИ</div>'
+    + '<div class="destruction-bar-track">'
+    + '<div class="destruction-bar-paper" style="width:' + barPaper + '%"></div>'
+    + '<div class="destruction-bar-real ' + barClass + '" style="width:' + barReal + '%"></div>'
+    + '</div>'
+    + '<div class="destruction-bar-labels"><span>Бумажная: ' + paperPct + '%</span><span>Реальная: ' + realPct + '%</span></div>'
+    + '</div>'
+    + '<div class="costs-section"><div class="costs-section-title">СКРЫТЫЕ ИЗДЕРЖКИ</div>' + costsHtml + '</div>'
+    + '<div class="real-margin-box">'
+    + '<div class="real-margin-label">ЧИСТАЯ<br>МАРЖА</div>'
+    + '<div class="real-margin-value ' + state + '">' + realFmt + ' &nbsp; ' + realPct + '%</div>'
+    + '</div>'
+    + '<div class="verdict-box ' + state + '">'
+    + '<div class="verdict-title">' + verdictTitle + '</div>'
+    + '<div class="verdict-text">' + verdictText + '</div>'
+    + '<div class="verdict-trend">' + escHtml(item.trend || '') + '</div>'
+    + '</div>'
+    + '</div>';
+}
 
-        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-        function showLoader(text) { const c = document.getElementById('cards-container'); if (c) c.innerHTML = `<div class="loader">${text}</div>`; }
-        function showError(text) { const c = document.getElementById('cards-container'); if (c) c.innerHTML = `<div class="loader" style="color:#ff4d4f;">${text}</div>`; }
+function renderReport(data) {
+  var products = data.products || [];
+  if (!products.length) { showError('Данные продуктов не найдены'); return; }
+  var category = data.category || 'Товарная ниша';
+  var isUsd    = products.some(function(p) { return String(p.china_price).includes('$') || String(p.rf_price).includes('$'); });
+  var niche    = detectNiche(category);
+  var nicheLabels = { electronics: '⚡ ЭЛЕКТРОНИКА', apparel: '👗 ОДЕЖДА / ОБУВЬ', general: '📦 ПРОЧИЕ ТОВАРЫ' };
+  var nicheLabel = nicheLabels[niche];
+  var divider = '<div class="report-divider"><div class="report-divider-line"></div><div class="report-divider-text">следующий товар</div><div class="report-divider-line"></div></div>';
+  var cards = products.map(function(p, i) { return buildCard(p, i, niche, isUsd); }).join(divider);
+  setRoot(
+    '<div class="report-head">'
+    + '<div class="report-eyebrow">ШОК-ОТЧЁТ · АУДИТ МАРЖИ</div>'
+    + '<div class="report-title">' + escHtml(category) + '</div>'
+    + '<div class="report-sub">Скрытые издержки, которые съедают прибыль</div>'
+    + '<span class="niche-pill">' + nicheLabel + '</span>'
+    + '</div>'
+    + '<div class="cards-list">' + cards + '</div>'
+  );
+  document.getElementById('cta-btn').textContent = 'Вернуться в Bio-Scan бот ↗';
+}
 
-        function cleanNumber(str) {
-            if (!str) return 0;
-            return parseFloat(String(str).replace(/[^\d\.]/g, '')) || 0;
-        }
+async function init() {
+  var param = getStartParam();
+  var parsed = parseStartParam(param);
+  var filename   = parsed.filename;
+  var expectedTs = parsed.expectedTs;
+  var MAX = 15;
+  var attempt = 0;
+  while (attempt < MAX) {
+    attempt++;
+    showLoading('ЗАГРУЗКА ДАННЫХ... ' + attempt + '/' + MAX);
+    try {
+      var url = filename + '?nocache=' + Date.now();
+      var res = await fetch(url, { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
+      if (!res.ok) { await sleep(2000); continue; }
+      var data = await res.json();
+      if (!expectedTs || (data.timestamp || 0) >= expectedTs) {
+        renderReport(data);
+        return;
+      }
+      showLoading('СИНХРОНИЗАЦИЯ РЕЗУЛЬТАТОВ... ' + attempt + '/' + MAX);
+    } catch(e) {
+      showLoading('ПОДКЛЮЧЕНИЕ... ' + attempt + '/' + MAX);
+    }
+    await sleep(2000);
+  }
+  showError('Превышено время ожидания. Переоткройте отчёт из бота.');
+}
 
-        function renderShockReport(data) {
-            const container = document.getElementById('cards-container');
-            if (!container) return;
-
-            container.innerHTML = '';
-
-            const products = data.products || [];
-            if (products.length === 0) {
-                showError("⚠️ Ошибка: Данные продуктов не найдены.");
-                return;
-            }
-            
-            // Берем первый (основной) продукт из пула для генерации шок-анализа
-            const item = products[0];
-            const category = data.category || "Товары народного потребления";
-
-            // Текущий курс для расчетов (если цены в $, переводим косты в $)
-            const isUsd = String(item.china_price).includes('$') || String(item.rf_price).includes('$');
-            const currencySign = isUsd ? '$' : '₽';
-
-            const priceChina = cleanNumber(item.china_price);
-            const priceRf = cleanNumber(item.rf_price);
-            const paperMarginProc = cleanNumber(item.margin);
-
-            // Инициализация переменных скрытых костов
-            let actualWeight, volumeWeight, freightDiff, nicheCostName, nicheCostValue, customsTax, returnsLoss;
-
-            // ЕСЛИ БЭКЕНД НЕ ПРИСЛАЛ РАСЧЕТЫ — СЧИТАЕМ ИХ НА ЛЕТУ ПО КЛАССИФИКАТОРУ НИШ КЛОДА
-            if (item.freight_diff) {
-                actualWeight = item.actual_weight || "0.5";
-                volumeWeight = item.volume_weight || "1.2";
-                freightDiff = item.freight_diff;
-                nicheCostName = item.niche_cost_name || "Нишевые издержки";
-                nicheCostValue = item.niche_cost_value;
-                customsTax = item.customs_tax;
-                returnsLoss = item.returns_loss;
-            } else {
-                // Авто-детект ниши
-                const catLower = category.toLowerCase();
-                if (catLower.includes('бритва') || catLower.includes('кофеварка') || catLower.includes('техника') || catLower.includes('гаджет')) {
-                    // Ниша 1. Гаджеты и электроника
-                    actualWeight = "0.4";
-                    volumeWeight = "1.8";
-                    freightDiff = isUsd ? "4.50" : "410";
-                    nicheCostName = "Сертификация EAC и декларация ТР ТС";
-                    nicheCostValue = isUsd ? "1.80" : "160";
-                    customsTax = isUsd ? "2.40" : "220";
-                    returnsLoss = isUsd ? "0.90" : "85";
-                } else if (catLower.includes('одежда') || catLower.includes('платье') || catLower.includes('текстиль')) {
-                    // Ниша 3. Одежда
-                    actualWeight = "0.35";
-                    volumeWeight = "0.5";
-                    freightDiff = isUsd ? "1.10" : "100";
-                    nicheCostName = "Обратная логистика маркетплейса (Возврат 40%)";
-                    nicheCostValue = isUsd ? "4.20" : "380";
-                    customsTax = isUsd ? "1.60" : "150";
-                    returnsLoss = isUsd ? "1.30" : "120";
-                } else {
-                    // Ниша 2. Товары для дома, кухни (Чайники, лампы и т.д.)
-                    actualWeight = "0.8";
-                    volumeWeight = "4.2";
-                    freightDiff = isUsd ? "6.80" : "620";
-                    nicheCostName = "Маркировка «Честный знак» + этикетки РФ";
-                    nicheCostValue = isUsd ? "0.45" : "40";
-                    customsTax = isUsd ? "2.10" : "190";
-                    returnsLoss = isUsd ? "1.20" : "110";
-                }
-            }
-
-            // Рассчитываем итоговую маржу
-            const totalHiddenCosts = cleanNumber(freightDiff) + cleanNumber(nicheCostValue) + cleanNumber(customsTax) + cleanNumber(returnsLoss);
-            const grossRevenue = priceRf - priceChina;
-            const realMarginRubNum = grossRevenue - totalHiddenCosts;
-            
-            // Расчет реального процента маржинальности
-            const realMarginProcNum = priceRf > 0 ? Math.round((realMarginRubNum / priceRf) * 100) : 0;
-
-            const realMarginRub = `${realMarginRubNum > 0 ? '' : '-'}${currencySign}${Math.abs(realMarginRubNum).toFixed(2)}`;
-            const realMarginProc = `${realMarginProcNum}%`;
-
-            // Триггер жесткого вердикта
-            const isLoss = realMarginRubNum <= (priceRf * 0.1); // Если маржа меньше 10% или в минусе — врубаем красный
-            const verdictClass = isLoss ? 'red' : 'yellow';
-            const verdictTitle = isLoss ? '❌ КРИТИЧЕСКИЙ УБЫТОК ИЛИ ОТСУТСТВИЕ СТАБИЛЬНОСТИ' : '⚠️ МАРЖА ПОД УГРОЗОЙ ПЕРВОГО ФОРС-МАЖОРА';
-            
-            let diagnosticText = "";
-            if (realMarginRubNum < 0) {
-                diagnosticText = `Вы продаете каждую единицу товара в реальный убыток ${realMarginRub}. Бумажная маржа ${item.margin} — это опасная иллюзия, созданная из-за неучтенного объемного веса груза и пошлин.`;
-            } else {
-                diagnosticText = `Реальная маржинальность упала до ${realMarginProc} (вместо плановых ${item.margin}). Любое колебание курса валюты на 5% или случайный подъем тарифов логистики Cargo полностью обнулит вашу прибыль.`;
-            }
-
-            container.innerHTML = `
-                <div class="shock-header">
-                    <h2>📦 Ниша: ${category}</h2>
-                    <p>Анализ по пулу: ${item.title}</p>
-                </div>
-
-                <div class="card">
-                    <div class="price-grid">
-                        <div class="price-item">
-                            <div class="price-label">Закупка фабрика</div>
-                            <div class="price-value">${item.china_price}</div>
-                        </div>
-                        <div class="price-item">
-                            <div class="price-label">Продажа розница</div>
-                            <div class="price-value">${item.rf_price}</div>
-                        </div>
-                    </div>
-
-                    <div class="cost-row">
-                        <span class="cost-name">Заявленная маржа в каталоге</span>
-                        <span class="cost-value" style="color: #3fb950;">${item.margin}</span>
-                    </div>
-
-                    <div class="section-title">Где горит прибыль (Скрытые издержки):</div>
-
-                    <div class="cost-row">
-                        <span class="cost-name">❶ Коэффициент объемного веса (Факт: ${actualWeight} кг / Тариф: ${volumeWeight} кг)</span>
-                        <span class="cost-value minus">-${currencySign}${cleanNumber(freightDiff).toFixed(2)}</span>
-                    </div>
-
-                    <div class="cost-row">
-                        <span class="cost-name">❷ ${nicheCostName}</span>
-                        <span class="cost-value minus">-${currencySign}${cleanNumber(nicheCostValue).toFixed(2)}</span>
-                    </div>
-
-                    <div class="cost-row">
-                        <span class="cost-name">❸ Таможенная очистка, пошлины + НДС 20%</span>
-                        <span class="cost-value minus">-${currencySign}${cleanNumber(customsTax).toFixed(2)}</span>
-                    </div>
-
-                    <div class="cost-row">
-                        <span class="cost-name">❹ Возвраты покупателей и издержки логистики СНГ</span>
-                        <span class="cost-value minus">-${currencySign}${cleanNumber(returnsLoss).toFixed(2)}</span>
-                    </div>
-
-                    <div class="section-title">Реальная экономика единицы товара:</div>
-
-                    <div class="cost-row" style="border-bottom: none; padding-bottom: 0;">
-                        <span class="cost-name" style="font-weight: bold; text-transform: uppercase;">ЧИСТАЯ МАРЖА ИИ:</span>
-                        <span class="cost-value" style="color: ${isLoss ? '#ff4d4f' : '#dbb32d'}; font-size: 17px;">
-                            ${realMarginRub} (${realMarginProc})
-                        </span>
-                    </div>
-                </div>
-
-                <div class="verdict-box ${verdictClass}">
-                    <div class="verdict-title">${verdictTitle}</div>
-                    <div class="verdict-text">${diagnosticText} Тренд по Douyin: ${item.trend || '📈 Стабилен'}. Рекомендуется немедленно пересчитать партию через B2B-систему.</div>
-                </div>
-
-                <button class="cta-btn" onclick="tg.close()">Перейти к полной юнит-экономике Bio Scan ↗</button>
-            `;
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            setTimeout(loadMarketData, 100);
-        });
-    </script>
+document.addEventListener('DOMContentLoaded', function() { setTimeout(init, 80); });
+</script>
 </body>
 </html>
